@@ -25,6 +25,7 @@ require "scripts.sonar"
 require "scripts.supercritical-steam"
 require "scripts.hydraulic-science-pack"
 require "scripts.legendary-quality"
+require "scripts.matriarch"
 
 require "compat.call-plumber"
 
