@@ -12,6 +12,12 @@ local SUBMARINES = {
     ["maraxsis-nuclear-submarine"] = true,
 }
 
+local WYRM_MATRIARCH_TERRITORY_EXPRESSION = "maraxsis_wyrm_matriarch_territory_expression"
+local WYRM_MATRIARCH_MINIMUM_TERRITORY_SIZE = 60
+--- Matriarch territory size, in tiles. Bigger means rarer matriarchs and longer
+--- patrol paths.
+local WYRM_MATRIARCH_TERRITORY_RADIUS = 1024
+
 local TRENCH_SURFACE_NAME = "maraxsis-trench"
 local MARAXSIS_SURFACE_NAME = "maraxsis"
 
@@ -82,6 +88,9 @@ data:extend {{
         DOME_DISABLEABLE_TYPES = DOME_DISABLEABLE_TYPES,
         DOME_EXCLUDED_FROM_DISABLE = DOME_EXCLUDED_FROM_DISABLE,
         TRENCH_ENTRANCE_ELEVATION = TRENCH_ENTRANCE_ELEVATION,
+        WYRM_MATRIARCH_TERRITORY_EXPRESSION = WYRM_MATRIARCH_TERRITORY_EXPRESSION,
+        WYRM_MATRIARCH_MINIMUM_TERRITORY_SIZE = WYRM_MATRIARCH_MINIMUM_TERRITORY_SIZE,
+        WYRM_MATRIARCH_TERRITORY_RADIUS = WYRM_MATRIARCH_TERRITORY_RADIUS,
         TROPICAL_FISH_NAMES = TROPICAL_FISH_NAMES,
         SAND_ITEM_NAME = SAND_ITEM_NAME,
         NEEDS_DOME = {}, -- populated by prototypes/collision-mask.lua

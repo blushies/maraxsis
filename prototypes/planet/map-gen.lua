@@ -133,6 +133,12 @@ planet_map_gen["maraxsis-trench"] = function()
             cliffiness = "1",
             cliff_elevation = "cliff_elevation_from_elevation",
         },
+        territory_settings = {
+            units = {"maraxsis-wyrm-matriarch"},
+            territory_index_expression = maraxsis_constants.WYRM_MATRIARCH_TERRITORY_EXPRESSION,
+            territory_variation_expression = "maraxsis_wyrm_matriarch_variation_expression",
+            minimum_territory_size = maraxsis_constants.WYRM_MATRIARCH_MINIMUM_TERRITORY_SIZE,
+        },
         autoplace_controls = {
         },
         autoplace_settings = {

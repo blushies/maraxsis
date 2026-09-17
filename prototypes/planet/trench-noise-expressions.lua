@@ -207,3 +207,37 @@ data.raw["simple-entity"]["maraxsis-chimney"].autoplace = {
     ]],
     order = "f[entity]-a[chimney]"
 }
+
+-- Wyrm matriarch territories, the same as Vulcanus's demolisher territories
+data:extend {
+    {
+        type = "noise-expression",
+        name = "maraxsis_wyrm_matriarch_territory_radius",
+        expression = maraxsis_constants.WYRM_MATRIARCH_TERRITORY_RADIUS,
+    },
+    {
+        type = "noise-expression",
+        name = maraxsis_constants.WYRM_MATRIARCH_TERRITORY_EXPRESSION,
+        expression = [[
+            voronoi_cell_id{
+                x = x + 1000 * maraxsis_wyrm_matriarch_territory_radius,
+                y = y + 1000 * maraxsis_wyrm_matriarch_territory_radius,
+                seed0 = map_seed,
+                seed1 = 0,
+                grid_size = maraxsis_wyrm_matriarch_territory_radius,
+                distance_type = 'manhattan',
+                jitter = 1
+            } - maraxsis_wyrm_matriarch_starting_area
+        ]],
+    },
+    {
+        type = "noise-expression",
+        name = "maraxsis_wyrm_matriarch_starting_area",
+        expression = "distance < 7 * 32",
+    },
+    {
+        type = "noise-expression",
+        name = "maraxsis_wyrm_matriarch_variation_expression",
+        expression = "floor(clamp(distance / (18 * 32) - 0.25, 0, 4)) + (-99 * no_enemies_mode)", -- negative number means no matriarch
+    },
+}

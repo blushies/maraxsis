@@ -1,9 +1,21 @@
-maraxsis.on_event(maraxsis.events.on_init(), function()
-    storage.ai_state_cache = storage.ai_state_cache or {}
-    storage.spawn_locations = storage.spawn_locations or {}
+local territories = require "scripts.wyrm-matriarch-territories"
+
+maraxsis.on_event(defines.events.on_segmented_unit_created, function(event)
+    local unit = event.segmented_unit
+    if not unit.valid then return end
+    if unit.surface.name ~= maraxsis_constants.TRENCH_SURFACE_NAME then return end
+    territories.remove_if_unreachable(unit)
 end)
 
-local WANDER_DISTANCE = 20
+maraxsis.on_event(maraxsis.events.on_init(), function()
+    territories.ensure_matriarchs()
+end)
+
+maraxsis.on_event(defines.events.on_territory_created, function(event)
+    local territory = event.territory
+    if territory.surface.name ~= maraxsis_constants.TRENCH_SURFACE_NAME then return end
+    territory.visibility_condition = "never"
+end)
 
 local BIOLUMINESCENCE_PARAMETERS = {
     [defines.segmented_unit_ai_state.patrolling] = {
@@ -38,59 +50,9 @@ local BIOLUMINESCENCE_PARAMETERS = {
     },
 }
 
-local function save_spawn_location(segmented_unit)
-    local head = segmented_unit.segments[1]
-    storage.spawn_locations[segmented_unit.unit_number] = head.position
-end
-
-
-maraxsis.register_delayed_function("save_spawn_location", function(segment)
-    if not segment.valid then return end
-    if not storage.spawn_locations[segment.segmented_unit.unit_number] then
-        save_spawn_location(segment.segmented_unit)
-    end
-end)
-
-local function go_investigate_spawn_location(segmented_unit)
-    local spawn_location = storage.spawn_locations[segmented_unit.unit_number]
-    if not spawn_location then
-        save_spawn_location(segmented_unit)
-        spawn_location = storage.spawn_locations[segmented_unit.unit_number]
-    end
-
-    local offset_x = math.random(-WANDER_DISTANCE, WANDER_DISTANCE)
-    local offset_y = math.random(-WANDER_DISTANCE, WANDER_DISTANCE)
-
-    segmented_unit.set_ai_state {
-        type = defines.segmented_unit_ai_state.investigating,
-        destination = {
-            offset_x + spawn_location.x,
-            offset_y + spawn_location.y,
-        },
-    }
-end
-
-local function get_ai_state(segment)
-    local unit_number = segment.segmented_unit.unit_number
-    local state = storage.ai_state_cache[unit_number]
-    if not state then
-        local segmented_unit = segment.segmented_unit
-        state = segmented_unit.get_ai_state().type
-        if state == defines.segmented_unit_ai_state.patrolling then
-            go_investigate_spawn_location(segmented_unit)
-        end
-        storage.ai_state_cache[unit_number] = state
-    end
-    return state
-end
-
 local function get_flash_parameters(segment)
-    return BIOLUMINESCENCE_PARAMETERS[get_ai_state(segment)]
+    return BIOLUMINESCENCE_PARAMETERS[segment.segmented_unit.get_ai_state().type]
 end
-
-maraxsis.on_nth_tick(120, function()
-    storage.ai_state_cache = {}
-end)
 
 local function get_segment_index(segment)
     for i, s in pairs(segment.segmented_unit.segments) do
@@ -106,6 +68,11 @@ end
 local function draw_bioluminescese(segment)
     if not segment.valid then return end
     local flash_parameters = get_flash_parameters(segment)
+    -- skip animating when we're not near the player and therefore inactive
+    if segment.segmented_unit.activity_mode ~= defines.segmented_unit_activity_mode.full then
+        maraxsis.execute_later("draw_bioluminescese", get_segment_glow_delay(segment, flash_parameters), segment)
+        return
+    end
     rendering.draw_light {
         sprite = "utility/light_medium",
         scale = segment.prototype.collision_box.left_top.x * flash_parameters.size,
@@ -127,6 +94,5 @@ maraxsis.on_event(defines.events.on_script_trigger_effect, function(event)
     end
 
     local segment = event.target_entity
-    maraxsis.execute_later("save_spawn_location", 1, segment)
     maraxsis.execute_later("draw_bioluminescese", 1, segment)
 end)
