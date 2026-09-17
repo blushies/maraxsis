@@ -5,6 +5,9 @@
 
 local space_age_sounds = require "__space-age__.prototypes.entity.sounds"
 
+--- Max uint32: https://lua-api.factorio.com/latest/types/uint32.html
+local MAX_UINT32 = 4294967295
+
 local function matriarch_spritesheet(file_name, is_shadow, is_glow, scale, alpha)
     scale = scale * 2
     is_shadow = is_shadow or false
@@ -168,7 +171,13 @@ local function make_matriarch_head(
         selection_box = {{-3 * scale, -3 * scale}, {3 * scale, 3 * scale}},
         drawing_box_vertical_extension = 4.0 * scale,
         is_military_target = true,
-        vision_distance = 64 * scale,
+        -- The demolisher behavior we inherit looks for entities built in its
+        -- territory and paths to them. We want the matriarch to be passive,
+        -- so restrict her vision. She can still "see" you if you attack her.
+        vision_distance = 0,
+        -- We don't want her scanning at all, but can't disable it entirely, so
+        -- make it happen once in forever.
+        ticks_per_scan = MAX_UINT32,
         enraged_duration = 100 * 60,                       -- 100 seconds
         patrolling_speed = 2.0 * speed_multiplier / 60,    -- 1.5 tiles per second
         investigating_speed = 4.0 * speed_multiplier / 60, -- 2.25 tiles per second
