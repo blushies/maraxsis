@@ -24,7 +24,7 @@ require "prototypes.recipe.sand-extraction"
 require "prototypes.entity.conduit"
 require "prototypes.entity.oversized-steam-turbine"
 require "prototypes.entity.geothermal-generator"
-require "prototypes.entity.ooozma.matriarch"
+require "prototypes.entity.wyrm-matriarch"
 
 require "prototypes.technology.abyssal-diving-gear"
 require "prototypes.technology.technology"

@@ -10,7 +10,7 @@ local function matriarch_spritesheet(file_name, is_shadow, is_glow, scale, alpha
     is_shadow = is_shadow or false
     is_glow = is_glow or false
     local sprite = util.sprite_load(
-        "__maraxsis__/graphics/entity/ooozma/matriarch/" .. file_name,
+        "__maraxsis__/graphics/entity/wyrm-matriarch/" .. file_name,
         {
             direction_count = 128,
             dice = 0, -- dicing is incompatible with sprite alpha masking, do not attempt
@@ -25,13 +25,13 @@ local function matriarch_spritesheet(file_name, is_shadow, is_glow, scale, alpha
         }
     )
     if file_name == "matriarch-body-glow" then
-        sprite.filename = "__maraxsis__/graphics/entity/ooozma/matriarch/matriarch-body-glow.png"
+        sprite.filename = "__maraxsis__/graphics/entity/wyrm-matriarch/matriarch-body-glow.png"
     elseif file_name == "matriarch-head-glow" then
-        sprite.filename = "__maraxsis__/graphics/entity/ooozma/matriarch/matriarch-body-glow.png"
+        sprite.filename = "__maraxsis__/graphics/entity/wyrm-matriarch/matriarch-body-glow.png"
     elseif file_name == "matriarch-head" or file_name == "matriarch-head-shadow" then
-        sprite.filename = "__maraxsis__/graphics/entity/ooozma/matriarch/matriarch-head.png"
+        sprite.filename = "__maraxsis__/graphics/entity/wyrm-matriarch/matriarch-head.png"
     elseif file_name == "matriarch-body" or file_name == "matriarch-body-shadow" then
-        sprite.filename = "__maraxsis__/graphics/entity/ooozma/matriarch/matriarch-body.png"
+        sprite.filename = "__maraxsis__/graphics/entity/wyrm-matriarch/matriarch-body.png"
     end
     return sprite
 end
@@ -133,7 +133,7 @@ local created_effect = {
         source_effects = {
             {
                 type = "script",
-                effect_id = "maraxsis-matriarch-segment-created",
+                effect_id = "maraxsis-wyrm-matriarch-segment-created",
             },
         },
     },
@@ -154,7 +154,7 @@ local function make_matriarch_head(
         keep_animation = true, -- TODO: remove
         name = "maraxsis-" .. base_name,
         type = "segmented-unit",
-        icon = "__maraxsis__/graphics/entity/ooozma/matriarch/icon.png",
+        icon = "__maraxsis__/graphics/entity/wyrm-matriarch/icon.png",
         flags = {"placeable-player", "placeable-enemy", "placeable-off-grid", "breaths-air", "not-repairable"},
         max_health = health,
         factoriopedia_simulation = factoriopedia_simulation,
@@ -179,13 +179,13 @@ local function make_matriarch_head(
         patrolling_turn_radius = 26 * scale,                  -- tiles
         turn_smoothing = 0.75,                                -- fraction of the total turning range (based on turning radius)
         roar = {
-            filename = "__maraxsis__/sounds/matriarch-roar.ogg",
+            filename = "__maraxsis__/sounds/wyrm-matriarch-roar.ogg",
             category = "enemy",
             priority = 127,
         },
         roar_probability = sounds.roar_probability,
         hurt_roar = {
-            filename = "__maraxsis__/sounds/matriarch-roar.ogg",
+            filename = "__maraxsis__/sounds/wyrm-matriarch-roar.ogg",
             category = "enemy",
             priority = 127,
         },
@@ -220,7 +220,7 @@ local function make_matriarch_segment(base_name, scale, damage_multiplier, healt
         keep_animation = true, -- TODO: remove
         name = make_segment_name(base_name .. "-segment", scale),
         type = "segment",
-        localised_name = {"entity-name.maraxsis-matriarch-segment", {"entity-name.maraxsis-" .. base_name}},
+        localised_name = {"entity-name.maraxsis-wyrm-matriarch-segment", {"entity-name.maraxsis-" .. base_name}},
         hidden = true,
         flags = {"not-repairable", "breaths-air", "not-in-kill-statistics"},
         max_health = health,
@@ -245,7 +245,7 @@ local function make_matriarch_segment(base_name, scale, damage_multiplier, healt
         working_sound = {
             main_sounds = {
                 sound = {
-                    filename = "__maraxsis__/sounds/hypno.ogg",
+                    filename = "__maraxsis__/sounds/wyrm-matriarch-swim.ogg",
                     category = "enemy",
                     priority = 127,
                     volume = 0.5,
@@ -320,7 +320,7 @@ local function make_matriarch(
 end
 
 make_matriarch(
-    "matriarch-ooozma",
+    "wyrm-matriarch",
     "maraxsis-d",
     1.5,
     1,
