@@ -122,7 +122,19 @@ local function ensure_matriarchs()
     end
 end
 
-return {
-    remove_if_unreachable = remove_if_unreachable,
-    ensure_matriarchs = ensure_matriarchs,
-}
+maraxsis.on_event(maraxsis.events.on_init(), function()
+    ensure_matriarchs()
+end)
+
+maraxsis.on_event(defines.events.on_territory_created, function(event)
+    local territory = event.territory
+    if territory.surface.name ~= maraxsis_constants.TRENCH_SURFACE_NAME then return end
+    territory.visibility_condition = "never"
+end)
+
+maraxsis.on_event(defines.events.on_segmented_unit_created, function(event)
+    local unit = event.segmented_unit
+    if not unit.valid then return end
+    if unit.surface.name ~= maraxsis_constants.TRENCH_SURFACE_NAME then return end
+    remove_if_unreachable(unit)
+end)
