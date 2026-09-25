@@ -55,16 +55,17 @@ fishing_tower.minable = {mining_time = 0.5, result = "maraxsis-fishing-tower"}
 fishing_tower.icon = "__maraxsis__/graphics/icons/fishing-tower.png"
 fishing_tower.icon_size = 64
 fishing_tower.max_health = 500
-fishing_tower.surface_conditions = maraxsis.shallow_surface_conditions()
+fishing_tower.surface_conditions = nil
 fishing_tower.growth_grid_tile_size = 2
 fishing_tower.radius = 4
-fishing_tower.input_inventory_size = 2
-fishing_tower.output_inventory_size = 1
+fishing_tower.module_slots = 8
+fishing_tower.allowed_effects = {"speed", "productivity", "quality", "consumption"}
 scale_sprite_recursive(fishing_tower.graphics_set)
 scale_sprite_recursive(fishing_tower.crane.parts)
 fishing_tower.collision_box = {{-1.9, -1.9}, {1.9, 1.9}}
 fishing_tower.selection_box = {{-2, -2}, {2, 2}}
 fishing_tower.emissions_per_second = nil
+fishing_tower.output_inventory_size = 1
 fishing_tower.accepted_seeds = {"maraxsis-fish-food"}
 fishing_tower.energy_source.emissions_per_minute = nil
 fishing_tower.radius_visualisation_picture = {
