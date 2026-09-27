@@ -3,6 +3,7 @@ require "prototypes.item-weight"
 require "prototypes.default-import-location"
 require "prototypes.item-sounds"
 require "prototypes.entity.regulator-fluidbox"
+require "prototypes.entity.wyrm-bait"
 require "prototypes.fluid-void"
 require "prototypes.technology.promethium-quality"
 

@@ -5,6 +5,12 @@
 
 local space_age_sounds = require "__space-age__.prototypes.entity.sounds"
 
+--- Target for the matrirarch's effect of "ripening" the baited wyrm traps.
+data:extend {{
+    type = "trigger-target-type",
+    name = maraxsis_constants.WYRM_BAIT_TRIGGER_MASK,
+}}
+
 --- Max uint32: https://lua-api.factorio.com/latest/types/uint32.html
 local MAX_UINT32 = 4294967295
 
@@ -217,6 +223,25 @@ local function make_matriarch_head(
             },
         },
         render_layer = "elevated-rail-metal",
+        --- "Ripens" the baited wyrm traps when she swims by.
+        update_effects = {{
+            distance_cooldown = 4,
+            effect = {{
+                type = "nested-result",
+                action = {
+                    type = "area",
+                    radius = 4,
+                    trigger_target_mask = {maraxsis_constants.WYRM_BAIT_TRIGGER_MASK},
+                    action_delivery = {
+                        type = "instant",
+                        target_effects = {{
+                            type = "script",
+                            effect_id = maraxsis_constants.WYRM_BAIT_RIPENED_EFFECT_ID,
+                        }},
+                    },
+                },
+            }},
+        }},
         segment_engine = {
             segments = make_matriarch_segment_specifications(base_name, segment_scales, scale),
         },

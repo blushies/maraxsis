@@ -66,7 +66,7 @@ fishing_tower.collision_box = {{-1.9, -1.9}, {1.9, 1.9}}
 fishing_tower.selection_box = {{-2, -2}, {2, 2}}
 fishing_tower.emissions_per_second = nil
 fishing_tower.output_inventory_size = 1
-fishing_tower.accepted_seeds = {"maraxsis-fish-food"}
+fishing_tower.accepted_seeds = {"maraxsis-fish-food", "maraxsis-wyrm-confinement-cell"}
 fishing_tower.energy_source.emissions_per_minute = nil
 fishing_tower.radius_visualisation_picture = {
     filename = "__maraxsis__/graphics/entity/fishing-tower/radius-visualization.png",
@@ -75,6 +75,30 @@ fishing_tower.radius_visualisation_picture = {
     priority = "extra-high-no-scale"
 }
 data:extend {fishing_tower}
+
+--- In the trench the tower farms wyrm bait. Why this copy?
+--- - 4x4 grid (for bigger wyrm specimens) instead of 2x2 grid (for tropical fish)
+--- - It only takes wyrm confinement cells.
+local trench_tower = table.deepcopy(fishing_tower)
+trench_tower.name = "maraxsis-fishing-tower-trench"
+trench_tower.localised_name = {"entity-name.maraxsis-fishing-tower"}
+trench_tower.localised_description = {"entity-description.maraxsis-fishing-tower"}
+trench_tower.growth_grid_tile_size = 4
+trench_tower.radius = 2
+trench_tower.accepted_seeds = {"maraxsis-wyrm-confinement-cell"}
+trench_tower.hidden_in_factoriopedia = true
+trench_tower.factoriopedia_alternative = "maraxsis-fishing-tower"
+trench_tower.placeable_by = {{item = "maraxsis-fishing-tower", count = 1}}
+data:extend {trench_tower}
+
+for surface_name in pairs(maraxsis_constants.MARAXSIS_TRENCH_SURFACES) do
+    PlanetsLib.assign_entity_replacement(
+        surface_name,
+        "maraxsis-fishing-tower",
+        trench_tower.name,
+        "maraxsis-runtime-entity-replacement"
+    )
+end
 
 data:extend {{
     name = "maraxsis-fishing-plant",

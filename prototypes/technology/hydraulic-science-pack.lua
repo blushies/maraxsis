@@ -44,7 +44,7 @@ data:extend {{
     },
     research_trigger = {
         type = "craft-item",
-        item = "maraxsis-wyrm-specimen",
+        item = "maraxsis-wyrm-confinement-cell",
         amount = 1,
     },
     prerequisites = {
