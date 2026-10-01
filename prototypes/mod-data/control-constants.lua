@@ -18,13 +18,6 @@ local WYRM_MATRIARCH_MINIMUM_TERRITORY_SIZE = 60
 --- patrol paths.
 local WYRM_MATRIARCH_TERRITORY_RADIUS = 1024
 
---- Trigger target mask carried by wyrm bait, so the matriarch's pulse targets
---- bait.
-local WYRM_BAIT_TRIGGER_MASK = "maraxsis-wyrm-bait"
-
---- Effect name when the bait has been "ripened".
-local WYRM_BAIT_RIPENED_EFFECT_ID = "maraxsis-wyrm-bait-ripened"
-
 --- The tile width of the matriarch's path that we make "fertile", including the
 --- fade.
 local WYRM_PATH_WIDTH = 52
@@ -110,8 +103,6 @@ data:extend {{
         WYRM_MATRIARCH_TERRITORY_EXPRESSION = WYRM_MATRIARCH_TERRITORY_EXPRESSION,
         WYRM_MATRIARCH_MINIMUM_TERRITORY_SIZE = WYRM_MATRIARCH_MINIMUM_TERRITORY_SIZE,
         WYRM_MATRIARCH_TERRITORY_RADIUS = WYRM_MATRIARCH_TERRITORY_RADIUS,
-        WYRM_BAIT_TRIGGER_MASK = WYRM_BAIT_TRIGGER_MASK,
-        WYRM_BAIT_RIPENED_EFFECT_ID = WYRM_BAIT_RIPENED_EFFECT_ID,
         WYRM_PATH_WIDTH = WYRM_PATH_WIDTH,
         WYRM_PATH_2_3_FADE = WYRM_PATH_2_3_FADE,
         WYRM_PATH_1_3_FADE = WYRM_PATH_1_3_FADE,
