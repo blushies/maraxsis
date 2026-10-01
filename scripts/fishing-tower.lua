@@ -20,6 +20,7 @@ end)
 maraxsis.on_event(maraxsis.events.on_built(), function(event)
     local entity = event.entity
     if not entity.valid or entity.name ~= "maraxsis-fishing-tower" then return end
+    if entity.surface.name == "maraxsis-trench" then return end
 
     local fish_spawner = entity.surface.create_entity {
         name = "maraxsis-fish-spawner",
