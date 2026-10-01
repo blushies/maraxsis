@@ -55,6 +55,7 @@ data:extend {{
     ingredients = {
         {type = "item", name = "maraxsis-glass-panes", amount = 5},
         {type = "item", name = "steel-plate",          amount = 1},
+        {type = "item", name = "maraxsis-fish-food",   amount = 1},
     },
     results = {
         {type = "item", name = "maraxsis-wyrm-confinement-cell", amount = 1},
