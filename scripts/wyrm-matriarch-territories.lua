@@ -6,6 +6,19 @@ local MINIMUM_OPEN_CHUNKS = 20
 
 local TILES_PER_CHUNK = 32
 
+--- The expression that follows the path of the matriarchs along the borders of
+--- their territories. 
+local PATH_EXPRESSION = "maraxsis_wyrm_path"
+local PATH_TILE = "maraxsis-fertile-trench-floor"
+local TRENCH_FLOOR = {
+    "volcanic-folds-underwater",
+    "volcanic-cracks-hot-underwater",
+    "volcanic-cracks-warm-underwater",
+}
+
+--- Chunks to backfill with matriarch path per iteration.
+local CHUNKS_PER_BATCH = 32
+
 --- How far past the explored chunks to claim, in chunks.
 ---
 --- Territories will extend further out than the player has explored, so we
@@ -104,6 +117,42 @@ local function remove_if_unreachable(unit)
     return false
 end
 
+--- Backfill chunks generated before we had matriarch paths. Batched to avoid
+--- lockups.
+local function carve_wyrm_paths()
+    local queue = storage.wyrm_path_chunks
+    local trench = game.surfaces[maraxsis_constants.TRENCH_SURFACE_NAME]
+    if not queue or not trench then
+        storage.wyrm_path_chunks = nil
+        return
+    end
+
+    for _ = 1, CHUNKS_PER_BATCH do
+        local chunk = table.remove(queue)
+        if not chunk then
+            storage.wyrm_path_chunks = nil
+            return
+        end
+        local left, top = chunk.x * TILES_PER_CHUNK, chunk.y * TILES_PER_CHUNK
+        local floor = trench.find_tiles_filtered {
+            area = {{left, top}, {left + TILES_PER_CHUNK, top + TILES_PER_CHUNK}},
+            name = TRENCH_FLOOR,
+        }
+        if floor[1] then
+            local positions = {}
+            for i, tile in pairs(floor) do positions[i] = tile.position end
+            local on_path = trench.calculate_tile_properties({PATH_EXPRESSION}, positions)[PATH_EXPRESSION]
+            local tiles = {}
+            for i, value in pairs(on_path) do
+                if value > 0 then tiles[#tiles + 1] = {name = PATH_TILE, position = positions[i]} end
+            end
+            if tiles[1] then trench.set_tiles(tiles, true, false, false, false) end
+        end
+    end
+    maraxsis.execute_later("wyrm_path_batch", 1)
+end
+maraxsis.register_delayed_function("wyrm_path_batch", carve_wyrm_paths)
+
 --- Migrate trench surfaces created before matriarchs were a thing. This can't
 --- be in migrations/ because those all run before scripts/map-gen/maraxsis.lua
 --- gives the trench its territory_settings.
@@ -120,6 +169,13 @@ local function ensure_matriarchs()
     for _, unit in pairs(trench.get_segmented_units()) do
         remove_if_unreachable(unit)
     end
+
+    local chunks = {}
+    for chunk in trench.get_chunks() do
+        if trench.is_chunk_generated(chunk) then chunks[#chunks + 1] = {x = chunk.x, y = chunk.y} end
+    end
+    storage.wyrm_path_chunks = chunks
+    carve_wyrm_paths()
 end
 
 maraxsis.on_event(maraxsis.events.on_init(), function()

@@ -148,6 +148,7 @@ planet_map_gen["maraxsis-trench"] = function()
                     ["volcanic-cracks-hot-underwater"] = {},
                     ["volcanic-cracks-warm-underwater"] = {},
                     ["volcanic-folds-underwater"] = {},
+                    ["maraxsis-fertile-trench-floor"] = {},
                     ["maraxsis-trench-out-of-map"] = {},
                 }
             },

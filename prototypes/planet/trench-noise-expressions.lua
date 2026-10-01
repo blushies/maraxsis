@@ -201,6 +201,12 @@ data.raw.tile["volcanic-folds-underwater"].autoplace = {
     order = "e[tile]-a[maraxsis]"
 }
 
+data.raw.tile["maraxsis-fertile-trench-floor"].autoplace = {
+    probability_expression = [[
+        2 * maraxsis_trench_wall * maraxsis_wyrm_path * (1 - maraxsis_hot_lava)
+    ]],
+    order = "e[tile]-b[maraxsis]"
+}
 data.raw["simple-entity"]["maraxsis-chimney"].autoplace = {
     probability_expression = [[
         maraxsis_trench_wall * maraxsis_3x3_grid * (random_penalty{x = x, y = y, seed = map_seed, source = 1, amplitude = 1} > 0.995)
@@ -229,6 +235,89 @@ data:extend {
                 jitter = 1
             } - maraxsis_wyrm_matriarch_starting_area
         ]],
+    },
+    {
+        --- The territory a point belongs to. Comparing a point's territory with
+        --- its neighbors' is how we find the borders between them.
+        type = "noise-function",
+        name = "maraxsis_wyrm_territory_at",
+        expression = [[
+            voronoi_cell_id{
+                x = x + dx + 1000 * maraxsis_wyrm_matriarch_territory_radius,
+                y = y + dy + 1000 * maraxsis_wyrm_matriarch_territory_radius,
+                seed0 = map_seed,
+                seed1 = 0,
+                grid_size = maraxsis_wyrm_matriarch_territory_radius,
+                distance_type = 'manhattan',
+                jitter = 1
+            }
+        ]],
+        parameters = {"dx", "dy"},
+    },
+    {
+        --- 1 where any neighbor a given reach away sits in another territory.
+        type = "noise-function",
+        name = "maraxsis_wyrm_border_within",
+        expression = [[
+            min(1,
+                (maraxsis_wyrm_territory_at(reach, 0) != here) +
+                (maraxsis_wyrm_territory_at(-reach, 0) != here) +
+                (maraxsis_wyrm_territory_at(0, reach) != here) +
+                (maraxsis_wyrm_territory_at(0, -reach) != here) +
+                (maraxsis_wyrm_territory_at(reach, reach) != here) +
+                (maraxsis_wyrm_territory_at(reach, -reach) != here) +
+                (maraxsis_wyrm_territory_at(-reach, reach) != here) +
+                (maraxsis_wyrm_territory_at(-reach, -reach) != here)
+            )
+        ]],
+        local_expressions = {
+            here = "maraxsis_wyrm_territory_at(0, 0)",
+        },
+        parameters = {"reach"},
+    },
+    {
+        --- The paths the matriarchs keep to: a ring inset from the borders of their territory.
+        type = "noise-expression",
+        name = "maraxsis_wyrm_path",
+        expression = [[
+            (center + middle + outer) / 3 > patches
+        ]],
+        local_expressions = {
+            --- Main band, all fertile.
+            center = [[
+                maraxsis_wyrm_border_within(]] .. (maraxsis_constants.WYRM_PATH_WIDTH - maraxsis_constants.WYRM_PATH_1_3_FADE - maraxsis_constants.WYRM_PATH_2_3_FADE) .. [[ + wobble)
+            ]],
+            --- Middle band with 2/3rds fertile tiles.
+            middle = [[
+                maraxsis_wyrm_border_within(]] .. (maraxsis_constants.WYRM_PATH_WIDTH - maraxsis_constants.WYRM_PATH_1_3_FADE) .. [[ + wobble)
+            ]],
+            --- Outer band with 1/3rd the fertile tiles.
+            outer = [[
+                maraxsis_wyrm_border_within(]] .. maraxsis_constants.WYRM_PATH_WIDTH .. [[ + wobble)
+            ]],
+            --- Noise mask we use to make the path progressively faded.
+            patches = [[
+                clamp(0.5 + 0.5 * basis_noise{
+                    x = x,
+                    y = y,
+                    seed0 = map_seed,
+                    seed1 = 'maraxsis_wyrm_path_patches',
+                    input_scale = 1/]] .. maraxsis_constants.WYRM_PATH_EDGE_GRAIN .. [[,
+                    output_scale = 1
+                }, 0.01, 0.99)
+            ]],
+            --- Makes the edge of the fertile zone be wavy instead of straight.
+            wobble = [[
+                ]] .. maraxsis_constants.WYRM_PATH_WOBBLE .. [[ * basis_noise{
+                    x = x,
+                    y = y,
+                    seed0 = map_seed,
+                    seed1 = 'maraxsis_wyrm_path_wobble',
+                    input_scale = 1/]] .. maraxsis_constants.WYRM_PATH_WOBBLE_LENGTH .. [[,
+                    output_scale = 1
+                }
+            ]],
+        },
     },
     {
         type = "noise-expression",

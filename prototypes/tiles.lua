@@ -49,6 +49,23 @@ waterifiy("sand-1", {maraxsis_underwater_collision_mask})
 waterifiy("lowland-cream-red", {maraxsis_coral_collision_mask})
 waterifiy("lowland-red-vein-2", {maraxsis_coral_collision_mask})
 waterifiy("nuclear-ground", {maraxsis_underwater_collision_mask})
+
+--- Matriarch's path.
+local FERTILE_LIGHTMAP = "__maraxsis__/graphics/terrain/maraxsis-fertile-trench-floor-light.png"
+local fertile = table.deepcopy(data.raw.tile["volcanic-folds-underwater"])
+fertile.name = "maraxsis-fertile-trench-floor"
+fertile.localised_name = {"tile-name.maraxsis-fertile-trench-floor"}
+fertile.autoplace = nil
+fertile.variants = table.deepcopy(data.raw.tile["midland-turquoise-bark"].variants)
+fertile.variants.light = tile_variations_template(FERTILE_LIGHTMAP, nil, {empty_transitions = true}).main
+fertile.variants.transition.lightmap_layout = {spritesheet = FERTILE_LIGHTMAP}
+fertile.map_color = defines.color.darkcyan
+fertile.hidden_in_factoriopedia = true
+fertile.factoriopedia_alternative = "volcanic-folds-underwater"
+fertile.layer = math.min(layer, 255)
+layer = layer + 1
+data:extend {fertile}
+water_tile_type_names[#water_tile_type_names + 1] = fertile.name
 data.raw.tile["nuclear-ground-underwater"].localised_name = {"tile-name.nuclear-ground"}
 data.raw.tile["nuclear-ground-underwater"].hidden_in_factoriopedia = true
 data.raw.tile["nuclear-ground-underwater"].factoriopedia_alternative = "nuclear-ground"
