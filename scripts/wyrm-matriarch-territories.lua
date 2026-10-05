@@ -10,6 +10,9 @@ local TILES_PER_CHUNK = 32
 --- their territories. 
 local PATH_EXPRESSION = "maraxsis_wyrm_path"
 local PATH_TILE = "maraxsis-fertile-trench-floor"
+local WALL_ROCKS_EXPRESSION = "maraxsis_trench_wall_rocks"
+local POLYLPLAST = "maraxsis-trench-polylplast"
+local CORAL = "maraxsis-trench-coral-animation"
 local TRENCH_FLOOR = {
     "volcanic-folds-underwater",
     "volcanic-cracks-hot-underwater",
@@ -141,12 +144,28 @@ local function carve_wyrm_paths()
         if floor[1] then
             local positions = {}
             for i, tile in pairs(floor) do positions[i] = tile.position end
-            local on_path = trench.calculate_tile_properties({PATH_EXPRESSION}, positions)[PATH_EXPRESSION]
+            local properties = trench.calculate_tile_properties({PATH_EXPRESSION, WALL_ROCKS_EXPRESSION}, positions)
+            local on_path, wall_rocks = properties[PATH_EXPRESSION], properties[WALL_ROCKS_EXPRESSION]
             local tiles = {}
             for i, value in pairs(on_path) do
                 if value > 0 then tiles[#tiles + 1] = {name = PATH_TILE, position = positions[i]} end
             end
             if tiles[1] then trench.set_tiles(tiles, true, false, false, false) end
+
+            --- Backfill plants.
+            for i, value in pairs(on_path) do
+                if value > 0 and wall_rocks[i] == 0 then
+                    local roll = math.random()
+                    local name = (roll < maraxsis_constants.WYRM_PATH_POLYLPLAST_PROBABILITY and POLYLPLAST)
+                        or (roll < maraxsis_constants.WYRM_PATH_POLYLPLAST_PROBABILITY + maraxsis_constants.WYRM_PATH_CORAL_PROBABILITY and CORAL)
+                    if name then
+                        local position = {positions[i].x + 0.5, positions[i].y + 0.5}
+                        if trench.can_place_entity {name = name, position = position} then
+                            trench.create_entity {name = name, position = position}
+                        end
+                    end
+                end
+            end
         end
     end
     maraxsis.execute_later("wyrm_path_batch", 1)

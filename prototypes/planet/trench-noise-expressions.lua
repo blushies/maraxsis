@@ -17,6 +17,16 @@ data:extend {{
     ]]
 }}
 
+--- The wall rocks where you can place pipes and belts but no domes. Delineates
+--- the buildable and unbuildable areas in the trench.
+data:extend {{
+    type = "noise-expression",
+    name = "maraxsis_trench_wall_rocks",
+    expression = [[
+        maraxsis_trench_elevation >= 0.028
+    ]]
+}}
+
 data:extend {{
     type = "noise-expression",
     name = "maraxsis_lava_master",
@@ -170,7 +180,9 @@ data.raw["simple-entity"]["maraxsis-lava-lamp"].autoplace = {
 
 data.raw["simple-entity"]["maraxsis-trench-wall-collisionless"].autoplace = {
     probability_expression = [[
-        maraxsis_3x3_grid * (maraxsis_trench_elevation < ]] .. (TRENCH_ENTRANCE_ELEVATION + 0.02) .. [[) * (maraxsis_trench_elevation >= 0.028)
+        maraxsis_3x3_grid
+        * maraxsis_trench_wall_rocks
+        * (maraxsis_trench_elevation < ]] .. (TRENCH_ENTRANCE_ELEVATION + 0.02) .. [[)
     ]],
     order = "b[lava]-a[maraxsis]"
 }
@@ -207,6 +219,32 @@ data.raw.tile["maraxsis-fertile-trench-floor"].autoplace = {
     ]],
     order = "e[tile]-b[maraxsis]"
 }
+
+--- Places coral and polylplasts on the matriarch paths.
+for i, spec in pairs {
+    {
+        prototype = data.raw.tree["maraxsis-trench-polylplast"],
+        probability = maraxsis_constants.WYRM_PATH_POLYLPLAST_PROBABILITY,
+    },
+    {
+        prototype = data.raw["simple-entity"]["maraxsis-trench-coral-animation"],
+        probability = maraxsis_constants.WYRM_PATH_CORAL_PROBABILITY,
+    },
+} do
+    spec.prototype.autoplace = {
+        tile_restriction = {"maraxsis-fertile-trench-floor"},
+        probability_expression = [[
+            (1 - maraxsis_trench_wall_rocks) *
+            (random_penalty{
+                x = x + ]] .. i * 10000 .. [[,
+                y = y,
+                seed = map_seed,
+                source = 1,
+                amplitude = 1
+            } > ]] .. (1 - spec.probability) .. [[)
+        ]],
+    }
+end
 data.raw["simple-entity"]["maraxsis-chimney"].autoplace = {
     probability_expression = [[
         maraxsis_trench_wall * maraxsis_3x3_grid * (random_penalty{x = x, y = y, seed = map_seed, source = 1, amplitude = 1} > 0.995)

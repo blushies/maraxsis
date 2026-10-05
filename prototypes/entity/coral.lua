@@ -144,3 +144,64 @@ polylplast.maraxsis_buildability_rules = {water = true, dome = false, coral = tr
 polylplast.collision_mask.layers.ground_tile = nil
 polylplast.collision_mask.layers[maraxsis_trench_entrance_collision_mask] = true
 data:extend {polylplast}
+
+--- Copies of the polylplast and coral for the matriarch paths, only in the
+--- trench. They glow a little in different colors.
+local trench_polylplast = table.deepcopy(polylplast)
+trench_polylplast.name = "maraxsis-trench-polylplast"
+trench_polylplast.localised_name = {"entity-name.maraxsis-polylplast"}
+trench_polylplast.localised_description = {"entity-description.maraxsis-polylplast"}
+trench_polylplast.hidden_in_factoriopedia = true
+trench_polylplast.factoriopedia_alternative = "maraxsis-polylplast"
+trench_polylplast.autoplace = nil
+local POLYP_GLOW_COLORS = {
+    {0.4, 0.3, 1.0},    -- indigo
+    {0.6, 0.5, 1.0},    -- blue-violet
+    {0.55, 0.35, 1.0},  -- violet
+    {0.85, 0.65, 1.0},  -- lavender
+    {0.75, 0.35, 1.0},  -- purple
+    {0.9, 0.4, 1.0},    -- orchid
+    {1.0, 0.35, 0.85},  -- magenta
+    {1.0, 0.5, 0.75},   -- pink
+}
+for n, variation in pairs(trench_polylplast.variations) do
+    local color = POLYP_GLOW_COLORS[(n - 1) % #POLYP_GLOW_COLORS + 1]
+    local glow = table.deepcopy(variation.trunk)
+    glow.filename = "__maraxsis__/graphics/entity/polylplast/glow.png"
+    glow.surface = nil
+    glow.flags = nil
+    glow.draw_as_glow = true
+    glow.tint = color
+    variation.trunk = {layers = {variation.trunk, glow}}
+
+    local tips = table.deepcopy(variation.leaves)
+    tips.filename = "__maraxsis__/graphics/entity/polylplast/glow.png"
+    tips.surface = nil
+    tips.flags = nil
+    tips.draw_as_glow = true
+    tips.tint = color
+    variation.overlay = tips
+end
+data:extend {trench_polylplast}
+
+--- Copy of the coral, but decoration only. Also glows a little.
+local trench_coral = table.deepcopy(data.raw["simple-entity"]["maraxsis-coral-animation"])
+trench_coral.name = "maraxsis-trench-coral-animation"
+trench_coral.autoplace = nil
+local CORAL_GLOW_COLORS = {
+    {1.0, 0.75, 0.25},  -- amber
+    {0.25, 1.0, 0.6},   -- green
+    {0.1, 1.0, 0.85},   -- teal
+    {0.2, 0.85, 1.0},   -- cyan
+    {0.4, 0.55, 1.0},   -- blue
+    {0.75, 0.5, 1.0},   -- violet
+    {1.0, 0.55, 0.85},  -- pink
+}
+for n, animation in pairs(trench_coral.animations) do
+    local glow = table.deepcopy(animation.layers[1])
+    glow.filename = "__maraxsis__/graphics/entity/coral/" .. n .. "-glow.png"
+    glow.tint = CORAL_GLOW_COLORS[n]
+    glow.draw_as_glow = true
+    table.insert(animation.layers, glow)
+end
+data:extend {trench_coral}
