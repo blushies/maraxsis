@@ -142,6 +142,64 @@ local created_effect = {
     },
 }
 
+--- The little wyrmling animation. Pointed 8 directions because we don't know
+--- what direction she's going. They wiggle and glow.
+local WYRMLING_CELL = 400
+local WYRMLING_DIRECTIONS = 8
+local WYRMLING_FRAMES = 16
+local WYRMLING_ANIMATION_SPEED = 0.19
+local WYRMLING_SCALE = 0.7
+local WYRMLING_OPACITY = 0.8
+local WYRMLING_TTL = 640
+local WYRMLING_FADE_IN = 180
+local WYRMLING_FADE_AWAY = 120
+
+for direction = 0, WYRMLING_DIRECTIONS - 1 do
+    local animation = {
+        filename = "__maraxsis__/graphics/entity/wyrm-matriarch/wyrmling.png",
+        width = WYRMLING_CELL,
+        height = WYRMLING_CELL,
+        y = direction * WYRMLING_CELL,
+        frame_count = WYRMLING_FRAMES,
+        line_length = WYRMLING_FRAMES,
+        animation_speed = WYRMLING_ANIMATION_SPEED,
+        scale = WYRMLING_SCALE,
+        flags = {"smoke"},
+    }
+
+    data:extend {{
+        type = "trivial-smoke",
+        name = "maraxsis-wyrmling-" .. direction,
+        animation = animation,
+        glow_animation = maraxsis.merge(animation, {
+            filename = "__maraxsis__/graphics/entity/wyrm-matriarch/wyrmling-glow.png",
+            draw_as_glow = true,
+        }),
+        --- Wiggle forever.
+        cyclic = true,
+        movement_slow_down_factor = 1,
+        duration = WYRMLING_TTL,
+        glow_fade_away_duration = WYRMLING_TTL,
+        fade_in_duration = WYRMLING_FADE_IN,
+        fade_away_duration = WYRMLING_FADE_AWAY,
+        color = {WYRMLING_OPACITY, WYRMLING_OPACITY, WYRMLING_OPACITY, WYRMLING_OPACITY},
+    }}
+end
+
+local function make_wyrmling_effects(spread, cooldown)
+    local effects = {}
+    for direction = 0, WYRMLING_DIRECTIONS - 1 do
+        effects[#effects + 1] = {
+            type = "create-trivial-smoke",
+            smoke_name = "maraxsis-wyrmling-" .. direction,
+            probability = 0.035,
+            offset_deviation = {{-spread, -spread}, {spread, spread}},
+            starting_frame_deviation = WYRMLING_FRAMES,
+        }
+    end
+    return {time_cooldown = cooldown, effect = effects}
+end
+
 local function make_matriarch_head(
     base_name,
     order,
@@ -246,6 +304,9 @@ local function make_matriarch_segment(base_name, scale, damage_multiplier, healt
                 matriarch_spritesheet("matriarch-body-shadow", true, false, 0.5 * scale, 1.0),
                 matriarch_spritesheet("matriarch-body-glow", false, true, 0.5 * scale, 1.0),
             },
+        },
+        update_effects = {
+            make_wyrmling_effects(18 * scale, math.floor(180 * scale)),
         },
         backward_overlap = 4,
         forward_padding = -1 * scale,  -- tiles
