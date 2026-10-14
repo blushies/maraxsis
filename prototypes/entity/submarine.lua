@@ -372,7 +372,9 @@ local vehicle_leg = table.deepcopy(data.raw["spider-leg"]["spidertron-leg-1"])
 vehicle_leg.name = "maraxsis-submarine-leg"
 vehicle_leg.maraxsis_buildability_rules = {water = true, dome = true, coral = true, trench = true, trench_entrance = true, trench_lava = true}
 vehicle_leg.graphics_set = {}
-vehicle_leg.collision_mask = collision_mask
+--- The matriarch is on this layer, and they need to be on the same layer to be
+--- attackable by her. Without this, you're invisible to her.
+vehicle_leg.collision_mask = {layers = {rail = true}}
 vehicle_leg.target_position_randomisation_distance = 0
 vehicle_leg.working_sound = nil
 vehicle_leg.minimal_step_size = 0

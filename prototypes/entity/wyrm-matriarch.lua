@@ -229,10 +229,7 @@ local function make_matriarch_head(
         selection_box = {{-3 * scale, -3 * scale}, {3 * scale, 3 * scale}},
         drawing_box_vertical_extension = 4.0 * scale,
         is_military_target = true,
-        -- The demolisher behavior we inherit looks for entities built in its
-        -- territory and paths to them. We want the matriarch to be passive,
-        -- so restrict her vision. She can still "see" you if you attack her.
-        vision_distance = 0,
+        vision_distance = 100,
         -- We don't want her scanning at all, but can't disable it entirely, so
         -- make it happen once in forever.
         ticks_per_scan = MAX_UINT32,
@@ -288,6 +285,11 @@ local function make_matriarch_segment(base_name, scale, damage_multiplier, healt
         name = make_segment_name(base_name .. "-segment", scale),
         type = "segment",
         localised_name = {"entity-name.maraxsis-wyrm-matriarch-segment", {"entity-name.maraxsis-" .. base_name}},
+        --- The default minus "rail". This makes it so submarines can pass through
+        --- her body. Her head needs to continue to be on the rail layer so that
+        --- she can target submarines (if they attack her), so you can technically
+        --- collide with that still.
+        collision_mask = {layers = {player = true, train = true, transport_belt = true, is_object = true}},
         hidden = true,
         flags = {"not-repairable", "breaths-air", "not-in-kill-statistics"},
         max_health = health,
@@ -401,3 +403,27 @@ make_matriarch(
     space_age_sounds.demolisher.big,
     "fluid-visualization"
 )
+
+--- Copy+paste demolisher's attack for now, tinted blue.
+local BLUE = {0.35, 0.7, 1.0}
+local fissure_attack = make_demolisher_fissure_attack("maraxsis-wyrm-matriarch", "maraxsis-d", 1.5, 1)
+local function tint(animation)
+    if animation[1] or animation.layers then
+        for _, part in pairs(animation.layers or animation) do tint(part) end
+    else
+        animation.tint = BLUE
+    end
+end
+for _, prototype in pairs(fissure_attack) do
+    for _, key in pairs {"animations", "animation", "decay_animation"} do
+        if prototype[key] then tint(prototype[key]) end
+    end
+end
+data:extend(fissure_attack)
+
+local matriarch = data.raw["segmented-unit"]["maraxsis-wyrm-matriarch"]
+matriarch.revenge_attack_parameters = table.deepcopy(data.raw["segmented-unit"]["big-demolisher"].revenge_attack_parameters)
+for _, effect in pairs(matriarch.revenge_attack_parameters.ammo_type.action.action_delivery.target_effects) do
+    effect.entity_name = "maraxsis-wyrm-matriarch-fissure"
+end
+
