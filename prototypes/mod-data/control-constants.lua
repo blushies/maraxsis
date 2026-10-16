@@ -32,6 +32,25 @@ local WYRM_PATH_WOBBLE_LENGTH = 120
 --- Chance of a polylplast and coral on each tile of the matriarch path.
 local WYRM_PATH_POLYLPLAST_PROBABILITY = 0.004
 local WYRM_PATH_CORAL_PROBABILITY = 0.022
+--- We use these noise expressions to regenerate matriarch paths after having
+--- killed one. When that happens, we use neighboring tiles in these directions
+--- to identify tiles that should decay.
+local WYRM_PATH_DIRECTIONS = {
+    north = {0, -1}, south = {0, 1}, east = {1, 0}, west = {-1, 0},
+    northeast = {1, -1}, southeast = {1, 1}, northwest = {-1, -1}, southwest = {-1, 1},
+}
+--- The noise expression IDs for the expressions that tell us whether the tile's
+--- neighbors are in territories that are still alive. We have to do it for each
+--- "band" - the center that's fully fertile, the middle that's 2/3rds fertile,
+--- and the outer that's 1/3rds fertile - because we need to recreate that fade
+--- along the new edge of the path.
+local WYRM_PATH_BAND_TERRITORIES = {}
+for _, band in pairs {"center", "middle", "outer"} do
+    WYRM_PATH_BAND_TERRITORIES[band] = {}
+    for direction in pairs(WYRM_PATH_DIRECTIONS) do
+        WYRM_PATH_BAND_TERRITORIES[band][direction] = "maraxsis_wyrm_path_" .. band .. "_territory_" .. direction
+    end
+end
 
 local TRENCH_SURFACE_NAME = "maraxsis-trench"
 local MARAXSIS_SURFACE_NAME = "maraxsis"
@@ -114,6 +133,8 @@ data:extend {{
         WYRM_PATH_WOBBLE_LENGTH = WYRM_PATH_WOBBLE_LENGTH,
         WYRM_PATH_POLYLPLAST_PROBABILITY = WYRM_PATH_POLYLPLAST_PROBABILITY,
         WYRM_PATH_CORAL_PROBABILITY = WYRM_PATH_CORAL_PROBABILITY,
+        WYRM_PATH_DIRECTIONS = WYRM_PATH_DIRECTIONS,
+        WYRM_PATH_BAND_TERRITORIES = WYRM_PATH_BAND_TERRITORIES,
         TROPICAL_FISH_NAMES = TROPICAL_FISH_NAMES,
         SAND_ITEM_NAME = SAND_ITEM_NAME,
         NEEDS_DOME = {}, -- populated by prototypes/collision-mask.lua

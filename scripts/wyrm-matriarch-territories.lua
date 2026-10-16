@@ -172,6 +172,212 @@ local function carve_wyrm_paths()
 end
 maraxsis.register_delayed_function("wyrm_path_batch", carve_wyrm_paths)
 
+--- What a dead matriarch's path turns back into.
+local BARREN_TILE = "volcanic-folds-underwater"
+
+--- Ticks between each chunk of a dead matriarch's path going barren, so it fades out.
+local TICKS_PER_DEAD_CHUNK = 6
+
+--- The path properties we need to reconstruct it.
+local PATH_BAND_TERRITORIES = maraxsis_constants.WYRM_PATH_BAND_TERRITORIES
+local PATH_BAND_COUNT = table_size(PATH_BAND_TERRITORIES)
+local PATH_PROPERTIES = {"maraxsis_wyrm_path_territory", "maraxsis_wyrm_path_patches"}
+for _, names in pairs(PATH_BAND_TERRITORIES) do
+    for _, name in pairs(names) do
+        PATH_PROPERTIES[#PATH_PROPERTIES + 1] = name
+    end
+end
+
+--- Re-draws one chunk of the shared border between two matriarch territories as
+--- if the territories didn't exist.
+--- @param chunk ChunkPosition
+--- @return boolean # whether any tile decayed
+local function make_decayed(chunk)
+    local trench = game.surfaces[maraxsis_constants.TRENCH_SURFACE_NAME]
+    if not trench then return false end
+    local dead_territory_ids = storage.wyrm_dead_territories
+    if not dead_territory_ids then return false end
+    local left = chunk.x * TILES_PER_CHUNK
+    local top = chunk.y * TILES_PER_CHUNK
+    local area = {{left, top}, {left + TILES_PER_CHUNK, top + TILES_PER_CHUNK}}
+    local path_tiles_in_chunk = trench.find_tiles_filtered {area = area, name = PATH_TILE}
+    if not path_tiles_in_chunk[1] then return false end
+
+    local positions = {}
+    for i, tile in pairs(path_tiles_in_chunk) do positions[i] = tile.position end
+    local properties = trench.calculate_tile_properties(PATH_PROPERTIES, positions)
+    local territory_ids = properties.maraxsis_wyrm_path_territory
+    local patches = properties.maraxsis_wyrm_path_patches
+
+    local tiles_to_kill = {}
+    for i, tile in pairs(path_tiles_in_chunk) do
+        local bands_drawn = 0
+        local bands_alive = 0
+        local territory_id = territory_ids[i]
+        --- This tile is:
+        ---  - "drawn" if it's near a border, so it would've been drawn during
+        ---    map generation.
+        ---  - "alive" if it's near a border and a territory on either side is
+        ---    still alive.
+        --- If there's a difference, we know we should repaint the tile.
+        for _, names in pairs(PATH_BAND_TERRITORIES) do
+            local is_drawn = false
+            local is_alive = not dead_territory_ids[territory_id]
+            for _, name in pairs(names) do
+                local neighbor_territory_id = properties[name][i]
+                is_drawn = is_drawn or neighbor_territory_id ~= territory_id
+                is_alive = is_alive or not dead_territory_ids[neighbor_territory_id]
+                if is_drawn and is_alive then break end
+            end
+            if is_drawn then bands_drawn = bands_drawn + 1 end
+            if is_drawn and is_alive then bands_alive = bands_alive + 1 end
+        end
+        local should_repaint_tile = bands_alive < bands_drawn
+        --- Handle the path edge where the tiles might now be dead now due to
+        --- the fading edges. Same logic as in trench-noise-expressions.lua
+        local faded_out = bands_alive / PATH_BAND_COUNT <= patches[i]
+        if should_repaint_tile and faded_out then
+            tiles_to_kill[#tiles_to_kill + 1] = {name = BARREN_TILE, position = tile.position}
+        end
+    end
+    if not tiles_to_kill[1] then return false end
+    trench.set_tiles(tiles_to_kill, true, false, false, false)
+    --- Kill all the decorative plants there too.
+    for _, plant in pairs(trench.find_entities_filtered {area = area, name = {POLYLPLAST, CORAL}}) do
+        if trench.get_tile(plant.position).name ~= PATH_TILE then plant.destroy() end
+    end
+    return true
+end
+
+--- Queues a chunk for dying.
+--- @param x integer
+--- @param y integer
+local function queue_dead_path_chunk(x, y)
+    local trench = game.surfaces[maraxsis_constants.TRENCH_SURFACE_NAME]
+    if not trench then return end
+    local key = x .. "," .. y
+    if storage.wyrm_dead_path_seen[key] or not trench.is_chunk_generated {x, y} then return end
+    storage.wyrm_dead_path_seen[key] = true
+    table.insert(storage.wyrm_dead_path_chunks, {x = x, y = y})
+end
+
+local function kill_dead_paths()
+    local queue = storage.wyrm_dead_path_chunks
+    local trench = game.surfaces[maraxsis_constants.TRENCH_SURFACE_NAME]
+    if not queue or not queue[1] or not trench then
+        storage.wyrm_dead_path_chunks = nil
+        storage.wyrm_dead_path_seen = nil
+        return
+    end
+    storage.wyrm_dead_path_seen = storage.wyrm_dead_path_seen or {}
+    local chunk = table.remove(queue, math.random(#queue))
+    local tiles_died = make_decayed(chunk)
+    --- Queue up adjacent chunks if we decayed tiles in this chunk.
+    if tiles_died then
+        for dx = -1, 1 do
+            for dy = -1, 1 do
+                queue_dead_path_chunk(chunk.x + dx, chunk.y + dy)
+            end
+        end
+    end
+    maraxsis.execute_later("wyrm_dead_path_batch", TICKS_PER_DEAD_CHUNK)
+end
+maraxsis.register_delayed_function("wyrm_dead_path_batch", kill_dead_paths)
+
+--- The territory value for the top-left tile of each chunk determines the
+--- chunk's territory. Gets all the territory IDs for the given chunks.
+--- @param surface LuaSurface
+--- @param chunks ChunkPosition[]
+--- @return double[]
+local function chunk_territory_ids(surface, chunks)
+    local chunk_corners = {}
+    for i, chunk in pairs(chunks) do
+        chunk_corners[i] = {x = chunk.x * TILES_PER_CHUNK, y = chunk.y * TILES_PER_CHUNK}
+    end
+    return surface.calculate_tile_properties({"maraxsis_wyrm_path_territory"}, chunk_corners).maraxsis_wyrm_path_territory
+end
+
+--- Variation on breadth-first search that grows the list of chunks by the given
+--- margin.
+--- @param chunks ChunkPosition[]
+--- @param margin integer
+--- @return ChunkPosition[]
+local function grow_chunks(chunks, margin)
+    local grown, seen, frontier = {}, {}, {}
+    local function add(x, y, next_frontier)
+        local key = x .. "," .. y
+        if seen[key] then return end
+        seen[key] = true
+        local chunk = {x = x, y = y}
+        grown[#grown + 1] = chunk
+        next_frontier[#next_frontier + 1] = chunk
+    end
+    for _, chunk in pairs(chunks) do add(chunk.x, chunk.y, frontier) end
+    for _ = 1, margin do
+        local next_frontier = {}
+        for _, chunk in pairs(frontier) do
+            for dx = -1, 1 do
+                for dy = -1, 1 do
+                    add(chunk.x + dx, chunk.y + dy, next_frontier)
+                end
+            end
+        end
+        frontier = next_frontier
+    end
+    return grown
+end
+
+--- A fertile path decays when both adjacent matriarchs are dead.
+maraxsis.on_event(defines.events.on_segmented_unit_died, function(event)
+    local unit = event.segmented_unit
+    local surface = unit.surface
+    local territory = unit.territory
+    if not unit.valid or
+        surface.name ~= maraxsis_constants.TRENCH_SURFACE_NAME or
+        not territory
+        then return end
+    local chunks = territory.get_chunks()
+    if not chunks[1] then return end
+    local id = chunk_territory_ids(surface, {chunks[1]})[1]
+
+    --- We first search for chunks we want to decay by looking at the territory
+    --- and its immediate neighbor chunks.
+    local area_chunks = grow_chunks(chunks, 1)
+    local area_territory_ids = chunk_territory_ids(surface, area_chunks)
+
+    storage.wyrm_dead_territories = storage.wyrm_dead_territories or {}
+    storage.wyrm_dead_territories[id] = true
+
+    --- Chunks belonging to neighbor territories that are also dead. These get
+    --- queued for decaying.
+    local dead_neighbor_chunks = {}
+    for i, chunk in pairs(area_chunks) do
+        local territory_id = area_territory_ids[i]
+        local is_neighbor = territory_id ~= id
+        local is_dead = storage.wyrm_dead_territories[territory_id]
+        if is_neighbor and is_dead then
+            table.insert(dead_neighbor_chunks, chunk)
+        end
+    end
+    if not dead_neighbor_chunks[1] then return end
+
+    local idle = not storage.wyrm_dead_path_chunks
+    storage.wyrm_dead_path_chunks = storage.wyrm_dead_path_chunks or {}
+    -- Chunks done for an earlier death may have more to lose now, so start afresh.
+    storage.wyrm_dead_path_seen = {}
+    for _, chunk in pairs(dead_neighbor_chunks) do
+        queue_dead_path_chunk(chunk.x, chunk.y)
+    end
+    if idle then kill_dead_paths() end
+end)
+
+--- Handle infertile ground in new chunks generated in territories with dead matriarchs.
+maraxsis.on_event(defines.events.on_chunk_generated, function(event)
+    if not storage.wyrm_dead_territories then return end
+    if event.surface.name ~= maraxsis_constants.TRENCH_SURFACE_NAME then return end
+    make_decayed(event.position)
+end)
+
 --- Migrate trench surfaces created before matriarchs were a thing. This can't
 --- be in migrations/ because those all run before scripts/map-gen/maraxsis.lua
 --- gives the trench its territory_settings.
