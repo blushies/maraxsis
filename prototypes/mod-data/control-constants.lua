@@ -12,8 +12,8 @@ local SUBMARINES = {
     ["maraxsis-nuclear-submarine"] = true,
 }
 
-local WYRM_MATRIARCH_TERRITORY_EXPRESSION = "maraxsis_wyrm_matriarch_territory_expression"
-local WYRM_MATRIARCH_MINIMUM_TERRITORY_SIZE = 60
+local WYRM_MATRIARCH_TERRITORY_EXPRESSION = "maraxsis_wyrm_trench_territory"
+local WYRM_MATRIARCH_MINIMUM_TERRITORY_SIZE = 350
 --- Matriarch territory size, in tiles. Bigger means rarer matriarchs and longer
 --- patrol paths.
 local WYRM_MATRIARCH_TERRITORY_RADIUS = 1024

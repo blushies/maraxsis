@@ -1,9 +1,6 @@
 local TERRITORY_EXPRESSION = maraxsis_constants.WYRM_MATRIARCH_TERRITORY_EXPRESSION
 local MINIMUM_TERRITORY_SIZE = maraxsis_constants.WYRM_MATRIARCH_MINIMUM_TERRITORY_SIZE
 
---- How many chunks of open trench a territory needs for a matriarch.
-local MINIMUM_OPEN_CHUNKS = 20
-
 local TILES_PER_CHUNK = 32
 
 --- The expression that follows the path of the matriarchs along the borders of
@@ -77,47 +74,10 @@ local function create_missing_territories(surface)
     for _, group in pairs(chunks_by_territory) do
         if group.explored > 0 and #group.chunks >= MINIMUM_TERRITORY_SIZE then
             local territory = surface.create_territory {chunks = group.chunks}
-            -- spawn the matriarch that would have spawned with the territory.
-            -- on_segmented_unit_created kills her if this territory is invalid
+            -- spawn the matriarch that would have spawned with the territory
             if territory then territory.regenerate_segmented_units() end
         end
     end
-end
-
---- A matriarch territory is considered reachable if the center tile of M chunks
---- are inside the trench.
---- @param territory LuaTerritory
-local function is_reachable(territory)
-    local surface = territory.surface
-    local chunk_centers = {}
-    for _, chunk in pairs(territory.get_chunks()) do
-        chunk_centers[#chunk_centers + 1] = {
-            x = chunk.x * TILES_PER_CHUNK + (TILES_PER_CHUNK / 2),
-            y = chunk.y * TILES_PER_CHUNK + (TILES_PER_CHUNK / 2),
-        }
-    end
-    -- 1 inside the trench, 0 in the rock outside it
-    local inside_trench = surface.calculate_tile_properties({"maraxsis_trench_wall"}, chunk_centers).maraxsis_trench_wall
-    local chunks_in_trench = 0
-    for _, value in pairs(inside_trench) do
-        if value > 0 then
-            chunks_in_trench = chunks_in_trench + 1
-            if chunks_in_trench >= MINIMUM_OPEN_CHUNKS then return true end
-        end
-    end
-    return false
-end
-
---- Removes a matriarch living in a trench "dead zone", where the player can
---- never reach or see her. Her territory stays; it just holds nothing.
---- @param unit LuaSegmentedUnit
-local function remove_if_unreachable(unit)
-    local territory = unit.territory
-    if territory and not is_reachable(territory) then
-        unit.destroy()
-        return true
-    end
-    return false
 end
 
 --- Backfill chunks generated before we had matriarch paths. Batched to avoid
@@ -391,9 +351,6 @@ local function ensure_matriarchs()
         territory.visibility_condition = "never"
     end
     create_missing_territories(trench)
-    for _, unit in pairs(trench.get_segmented_units()) do
-        remove_if_unreachable(unit)
-    end
 
     local chunks = {}
     for chunk in trench.get_chunks() do
@@ -411,11 +368,4 @@ maraxsis.on_event(defines.events.on_territory_created, function(event)
     local territory = event.territory
     if territory.surface.name ~= maraxsis_constants.TRENCH_SURFACE_NAME then return end
     territory.visibility_condition = "never"
-end)
-
-maraxsis.on_event(defines.events.on_segmented_unit_created, function(event)
-    local unit = event.segmented_unit
-    if not unit.valid then return end
-    if unit.surface.name ~= maraxsis_constants.TRENCH_SURFACE_NAME then return end
-    remove_if_unreachable(unit)
 end)

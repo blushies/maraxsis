@@ -400,3 +400,69 @@ for band, names in pairs(maraxsis_constants.WYRM_PATH_BAND_TERRITORIES) do
         }}
     end
 end
+
+
+--- Matriarch territories are long strips that follow the middle of the trench.
+--- A chunk is in a strip when it's within STRIP_REACH tiles of the trench
+--- (where maraxsis_trench_noise is 0). Areas that 'flatten out' where the
+--- trench opens up are filled in, this makes the matriarch stick to the edges
+--- of these open areas more. Voronoi cells divide the strips into territories.
+--- 
+--- How far from zero a strip reaches, in tiles.
+local STRIP_REACH = 64
+--- How far on either side we read to measure the slope, in tiles.
+local STRIP_SLOPE_CHECK = 16
+--- Anywhere the noise is closer to 0 than this is in a strip too.
+local STRIP_FLAT_NOISE = 0.04
+--- Roughly how big the territories are, in tiles.
+local STRIP_CELL_SIZE = 3500
+--- How much gap in between two territories, in tiles.
+local STRIP_GAP = 400
+
+data:extend {{
+    type = "noise-expression",
+    name = "maraxsis_wyrm_trench_territory",
+    --- -1 means no territory.
+    expression = "if(in_strip & away_from_other, cell, -1)",
+    local_expressions = {
+        here = "maraxsis_trench_noise(x, y)",
+        gx = [[
+            (maraxsis_trench_noise(x + ]] .. STRIP_SLOPE_CHECK .. [[, y) -
+             maraxsis_trench_noise(x - ]] .. STRIP_SLOPE_CHECK .. [[, y)) /
+        ]] .. 2 * STRIP_SLOPE_CHECK,
+        gy = [[
+            (maraxsis_trench_noise(x, y + ]] .. STRIP_SLOPE_CHECK .. [[) -
+             maraxsis_trench_noise(x, y - ]] .. STRIP_SLOPE_CHECK .. [[)) /
+        ]] .. 2 * STRIP_SLOPE_CHECK,
+        slope = "sqrt(gx * gx + gy * gy)",
+        --- Roughly how far this tile is from zero.
+        zero_distance = "abs(here) / (slope + 0.000001)",
+        near_zero = "zero_distance < " .. STRIP_REACH,
+        in_flat = "abs(here) < " .. STRIP_FLAT_NOISE,
+        in_strip = "near_zero | in_flat",
+        cell = [[
+            voronoi_cell_id{
+                x = x + 1000 * ]] .. STRIP_CELL_SIZE .. [[,
+                y = y + 1000 * ]] .. STRIP_CELL_SIZE .. [[,
+                seed0 = map_seed,
+                seed1 = 7,
+                grid_size = ]] .. STRIP_CELL_SIZE .. [[,
+                distance_type = 'manhattan',
+                jitter = 0.5
+            }
+        ]],
+        edge_distance = [[
+            voronoi_pyramid_noise{
+                x = x + 1000 * ]] .. STRIP_CELL_SIZE .. [[,
+                y = y + 1000 * ]] .. STRIP_CELL_SIZE .. [[,
+                seed0 = map_seed,
+                seed1 = 7,
+                grid_size = ]] .. STRIP_CELL_SIZE .. [[,
+                distance_type = 'manhattan',
+                jitter = 0.5
+            } * ]] .. STRIP_CELL_SIZE .. [[
+        ]],
+        --- `STRIP_GAP / 2` because half the gap belongs to each territory side
+        away_from_other = "edge_distance > " .. STRIP_GAP / 2,
+    },
+}}

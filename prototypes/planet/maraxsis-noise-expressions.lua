@@ -1,4 +1,10 @@
 local TRENCH_ENTRANCE_ELEVATION = maraxsis_constants.TRENCH_ENTRANCE_ELEVATION
+--- How far the whole map's terrain is shifted so the player doesn't spawn
+--- inside cliffs, in tiles.
+local TERRAIN_SHIFT_X = -38
+local TERRAIN_SHIFT_Y = 14
+--- Bigger number = trenches are farther apart.
+local TRENCH_NOISE_SCALE = 1300
 
 data:extend {{
     type = "noise-expression",
@@ -22,21 +28,30 @@ data:extend {{
     parameters = {"xx", "yy"}
 }}
 
+--- The `fulgora_grid / 2` offsets the grid so that the starting area is in the
+--- middle of a cell.
 data:extend {{
     type = "noise-function",
-    name = "maraxsis_moisture",
+    name = "maraxsis_moisture_noise",
     expression = [[
-        abs(multioctave_noise{
-            x = maraxsis_wx(xx, yy),
-            y = maraxsis_wy(xx, yy),
+        multioctave_noise{
+            x = xx + fulgora_grid / 2,
+            y = yy + fulgora_grid / 2,
             persistence = 0.25,
             seed0 = map_seed,
             seed1 = 1,
             octaves = 2,
-            input_scale = 1/1300,
+            input_scale = 1/]] .. TRENCH_NOISE_SCALE .. [[,
             output_scale = 1
-        })
+        }
     ]],
+    parameters = {"xx", "yy"}
+}}
+
+data:extend {{
+    type = "noise-function",
+    name = "maraxsis_moisture",
+    expression = "abs(maraxsis_moisture_noise(maraxsis_wx(xx, yy), maraxsis_wy(xx, yy)))",
     parameters = {"xx", "yy"}
 }}
 
@@ -46,7 +61,7 @@ data:extend {{
     expression = "maraxsis_moisture(x, y)"
 }}
 
-data:extend {{ -- distorted x. Also offset grid so that the starting area is in the middle of a cell
+data:extend {{ -- distorted x
     type = "noise-function",
     name = "maraxsis_wx",
     expression = [[
@@ -59,11 +74,11 @@ data:extend {{ -- distorted x. Also offset grid so that the starting area is in 
             octaves = 4,
             input_scale = 5 / fulgora_grid,
             output_scale = fulgora_grid * 0.07
-        } * maraxsis_wobble_mask(xx, yy) + fulgora_grid / 2
+        } * maraxsis_wobble_mask(xx, yy)
     ]],
     parameters = {"xx", "yy"}
 }}
-data:extend {{ -- distorted y. Also offset grid so that the starting area is in the middle of a cell
+data:extend {{ -- distorted y
     type = "noise-function",
     name = "maraxsis_wy",
     expression = [[
@@ -76,7 +91,7 @@ data:extend {{ -- distorted y. Also offset grid so that the starting area is in 
             octaves = 4,
             input_scale = 5 / fulgora_grid,
             output_scale = fulgora_grid * 0.07
-        } * maraxsis_wobble_mask(xx, yy) + fulgora_grid / 2
+        } * maraxsis_wobble_mask(xx, yy)
     ]],
     parameters = {"xx", "yy"}
 }}
@@ -85,7 +100,6 @@ data:extend {{ -- We usually want a lot of wobble or none at all, so wobble_infl
     type = "noise-function",
     name = "maraxsis_wobble_mask",
     expression = "clamp(wobble_influence + 0.6, 0, 1)",
-    parameters = {"xx", "yy"},
     local_expressions = {
         wobble_influence = [[
             multioctave_noise{
@@ -110,8 +124,8 @@ data:extend {{
         1 - (1 - min(1, elevation) + ]] .. TRENCH_ENTRANCE_ELEVATION .. [[) ^ 3 + elevation/3
     ]],
     local_expressions = {
-        xx = "xxx - 38",
-        yy = "yyy + 14",
+        xx = "xxx + " .. TERRAIN_SHIFT_X,
+        yy = "yyy + " .. TERRAIN_SHIFT_Y,
         elevation = [[
             if(
                 distance_from_0_0(xx, yy) < maraxsis_starting_area,
@@ -121,6 +135,13 @@ data:extend {{
         ]]
     },
     parameters = {"xxx", "yyy"}
+}}
+
+data:extend {{
+    type = "noise-function",
+    name = "maraxsis_trench_noise",
+    expression = "maraxsis_moisture_noise(x + " .. TERRAIN_SHIFT_X .. ", y + " .. TERRAIN_SHIFT_Y .. ")",
+    parameters = {"x", "y"}
 }}
 
 data:extend {{
@@ -212,8 +233,8 @@ for i = 1, SPECIES do
         name = "maraxsis_tropical_fish_" .. i,
         expression = "rand > 1 - (" .. FISH_IN_CORAL .. " * in_coral + " .. FISH_IN_OPEN_WATER .. " * (1 - in_coral))",
         local_expressions = {
-            wx = "maraxsis_wx(x, y) + " .. i * 97,
-            wy = "maraxsis_wy(x, y) + " .. i * 61,
+            wx = "maraxsis_wx(x, y) + fulgora_grid / 2 + " .. i * 97,
+            wy = "maraxsis_wy(x, y) + fulgora_grid / 2 + " .. i * 61,
             seed = "map_seed + " .. i * 100,
             rand = "1 - random_penalty{x = wx, y = wy, seed = seed, source = 1, amplitude = 1}",
             in_coral = "maraxsis_coral_reef(x, y) > 0.45",
