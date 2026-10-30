@@ -252,164 +252,63 @@ data.raw["simple-entity"]["maraxsis-chimney"].autoplace = {
     order = "f[entity]-a[chimney]"
 }
 
---- How far from a border each band of the path reaches.
-local PATH_CENTER_REACH = "(" .. (maraxsis_constants.WYRM_PATH_WIDTH - maraxsis_constants.WYRM_PATH_1_3_FADE - maraxsis_constants.WYRM_PATH_2_3_FADE) .. " + maraxsis_wyrm_path_wobble)"
-local PATH_MIDDLE_REACH = "(" .. (maraxsis_constants.WYRM_PATH_WIDTH - maraxsis_constants.WYRM_PATH_1_3_FADE) .. " + maraxsis_wyrm_path_wobble)"
-local PATH_OUTER_REACH = "(" .. maraxsis_constants.WYRM_PATH_WIDTH .. " + maraxsis_wyrm_path_wobble)"
+--- Makes the edge of the fertile zone be wavy instead of straight.
+--- 
+--- The "wavelength" of the wobble wave, in tiles.
+local WYRM_PATH_WOBBLE_LENGTH = 120
+data:extend {{
+    type = "noise-expression",
+    name = "maraxsis_wyrm_path_wobble",
+    expression = [[
+        ]] .. maraxsis_constants.WYRM_PATH_WOBBLE .. [[ * basis_noise{
+            x = x,
+            y = y,
+            seed0 = map_seed,
+            seed1 = 'maraxsis_wyrm_path_wobble',
+            input_scale = 1/]] .. WYRM_PATH_WOBBLE_LENGTH .. [[,
+            output_scale = 1
+        }
+    ]],
+}}
 
--- Wyrm matriarch territories, the same as Vulcanus's demolisher territories
-data:extend {
-    {
-        type = "noise-expression",
-        name = "maraxsis_wyrm_matriarch_territory_radius",
-        expression = maraxsis_constants.WYRM_MATRIARCH_TERRITORY_RADIUS,
-    },
-    {
-        type = "noise-expression",
-        name = maraxsis_constants.WYRM_MATRIARCH_TERRITORY_EXPRESSION,
-        expression = [[
-            voronoi_cell_id{
-                x = x + 1000 * maraxsis_wyrm_matriarch_territory_radius,
-                y = y + 1000 * maraxsis_wyrm_matriarch_territory_radius,
-                seed0 = map_seed,
-                seed1 = 0,
-                grid_size = maraxsis_wyrm_matriarch_territory_radius,
-                distance_type = 'manhattan',
-                jitter = 1
-            } - maraxsis_wyrm_matriarch_starting_area
-        ]],
-    },
-    {
-        --- The territory a point belongs to. Comparing a point's territory with
-        --- its neighbors' is how we find the borders between them.
-        type = "noise-function",
-        name = "maraxsis_wyrm_territory_at",
-        expression = [[
-            voronoi_cell_id{
-                x = x + dx + 1000 * maraxsis_wyrm_matriarch_territory_radius,
-                y = y + dy + 1000 * maraxsis_wyrm_matriarch_territory_radius,
-                seed0 = map_seed,
-                seed1 = 0,
-                grid_size = maraxsis_wyrm_matriarch_territory_radius,
-                distance_type = 'manhattan',
-                jitter = 1
-            }
-        ]],
-        parameters = {"dx", "dy"},
-    },
-    {
-        --- 1 where any neighbor a given reach away sits in another territory.
-        type = "noise-function",
-        name = "maraxsis_wyrm_border_within",
-        expression = [[
-            min(1,
-                (maraxsis_wyrm_territory_at(reach, 0) != here) +
-                (maraxsis_wyrm_territory_at(-reach, 0) != here) +
-                (maraxsis_wyrm_territory_at(0, reach) != here) +
-                (maraxsis_wyrm_territory_at(0, -reach) != here) +
-                (maraxsis_wyrm_territory_at(reach, reach) != here) +
-                (maraxsis_wyrm_territory_at(reach, -reach) != here) +
-                (maraxsis_wyrm_territory_at(-reach, reach) != here) +
-                (maraxsis_wyrm_territory_at(-reach, -reach) != here)
-            )
-        ]],
-        local_expressions = {
-            here = "maraxsis_wyrm_territory_at(0, 0)",
-        },
-        parameters = {"reach"},
-    },
-    {
-        --- The paths the matriarchs keep to: a ring inset from the borders of their territory.
-        type = "noise-expression",
-        name = "maraxsis_wyrm_path",
-        expression = [[
-            (center + middle + outer) / 3 > maraxsis_wyrm_path_patches
-        ]],
-        local_expressions = {
-            --- Main band, all fertile.
-            center = [[
-                maraxsis_wyrm_border_within(]] .. PATH_CENTER_REACH .. [[)
-            ]],
-            --- Middle band with 2/3rds fertile tiles.
-            middle = [[
-                maraxsis_wyrm_border_within(]] .. PATH_MIDDLE_REACH .. [[)
-            ]],
-            --- Outer band with 1/3rd the fertile tiles.
-            outer = [[
-                maraxsis_wyrm_border_within(]] .. PATH_OUTER_REACH .. [[)
-            ]],
-        },
-    },
-    {
-        --- Makes the edge of the fertile zone be wavy instead of straight.
-        type = "noise-expression",
-        name = "maraxsis_wyrm_path_wobble",
-        expression = [[
-            ]] .. maraxsis_constants.WYRM_PATH_WOBBLE .. [[ * basis_noise{
-                x = x,
-                y = y,
-                seed0 = map_seed,
-                seed1 = 'maraxsis_wyrm_path_wobble',
-                input_scale = 1/]] .. maraxsis_constants.WYRM_PATH_WOBBLE_LENGTH .. [[,
-                output_scale = 1
-            }
-        ]],
-    },
-    {
-        --- Noise mask we use to make the path progressively faded.
-        type = "noise-expression",
-        name = "maraxsis_wyrm_path_patches",
-        expression = [[
-            clamp(0.5 + 0.5 * basis_noise{
-                x = x,
-                y = y,
-                seed0 = map_seed,
-                seed1 = 'maraxsis_wyrm_path_patches',
-                input_scale = 1/]] .. maraxsis_constants.WYRM_PATH_EDGE_GRAIN .. [[,
-                output_scale = 1
-            }, 0.01, 0.99)
-        ]],
-    },
-    {
-        --- The territory a path tile is in.
-        type = "noise-expression",
-        name = "maraxsis_wyrm_path_territory",
-        expression = "maraxsis_wyrm_territory_at(0, 0)",
-    },
-    {
-        type = "noise-expression",
-        name = "maraxsis_wyrm_matriarch_starting_area",
-        expression = "distance < 7 * 32",
-    },
-    {
-        type = "noise-expression",
-        name = "maraxsis_wyrm_matriarch_variation_expression",
-        expression = "floor(clamp(distance / (18 * 32) - 0.25, 0, 4)) + (-99 * no_enemies_mode)", -- negative number means no matriarch
-    },
-}
+--- Noise mask we use to make the path progressively faded.
+---
+--- How many tiles make up the diameter of a "bald" spot in the thin area.
+local WYRM_PATH_EDGE_GRAIN = 4
+data:extend {{
+    type = "noise-expression",
+    name = "maraxsis_wyrm_path_patches",
+    expression = [[
+        clamp(0.5 + 0.5 * basis_noise{
+            x = x,
+            y = y,
+            seed0 = map_seed,
+            seed1 = 'maraxsis_wyrm_path_patches',
+            input_scale = 1/]] .. WYRM_PATH_EDGE_GRAIN .. [[,
+            output_scale = 1
+        }, 0.01, 0.99)
+    ]],
+}}
 
-local PATH_REACHES = {center = PATH_CENTER_REACH, middle = PATH_MIDDLE_REACH, outer = PATH_OUTER_REACH}
-for band, names in pairs(maraxsis_constants.WYRM_PATH_BAND_TERRITORIES) do
-    local reach = PATH_REACHES[band]
-    for direction, name in pairs(names) do
-        local d = maraxsis_constants.WYRM_PATH_DIRECTIONS[direction]
-        data:extend {{
-            type = "noise-expression",
-            name = name,
-            expression = "maraxsis_wyrm_territory_at(" .. d[1] .. " * " .. reach .. ", " .. d[2] .. " * " .. reach .. ")",
-        }}
-    end
-end
+--- Determines what unit spawns in the territory. It's always a matriarch unless
+--- enemies are turned off:
+--- - 0 for matriarch (first in territory_settings.units)
+--- - 1 for no enemy
+data:extend {{
+    type = "noise-expression",
+    name = "maraxsis_wyrm_matriarch_variation_expression",
+    expression = "-no_enemies_mode",
+}}
 
 
 --- Matriarch territories are long strips that follow the middle of the trench.
 --- A chunk is in a strip when it's within STRIP_REACH tiles of the trench
 --- (where maraxsis_trench_noise is 0). Areas that 'flatten out' where the
 --- trench opens up are filled in, this makes the matriarch stick to the edges
---- of these open areas more. Voronoi cells divide the strips into territories.
+--- of these open areas more.
 --- 
 --- How far from zero a strip reaches, in tiles.
-local STRIP_REACH = 64
+local STRIP_REACH = 72
 --- How far on either side we read to measure the slope, in tiles.
 local STRIP_SLOPE_CHECK = 16
 --- Anywhere the noise is closer to 0 than this is in a strip too.
@@ -418,12 +317,76 @@ local STRIP_FLAT_NOISE = 0.04
 local STRIP_CELL_SIZE = 3500
 --- How much gap in between two territories, in tiles.
 local STRIP_GAP = 400
+local STRIP_GRID_SHIFT = 1000
 
+--- The voronoi cell number at the given points px and py.
+data:extend {{
+    type = "noise-function",
+    name = "maraxsis_wyrm_trench_cell_at",
+    parameters = {"px", "py"},
+    expression = [[
+        voronoi_cell_id{
+            x = px,
+            y = py,
+            seed0 = map_seed,
+            seed1 = 7,
+            grid_size = ]] .. STRIP_CELL_SIZE .. [[,
+            distance_type = 'manhattan',
+            jitter = 0.5
+        }
+    ]],
+}}
+
+--- The voronoi cells that split up the territories and define the territory's ID.
+data:extend {{
+    type = "noise-expression",
+    name = "maraxsis_wyrm_trench_cell",
+    expression = "maraxsis_wyrm_trench_cell_at(x + " .. STRIP_GRID_SHIFT * STRIP_CELL_SIZE .. ", y + " .. STRIP_GRID_SHIFT * STRIP_CELL_SIZE .. ")",
+}}
+
+--- Create a checkerboard. We allow wyrm territories to be in the "black" grid
+--- sections, which lets us space the territories out so there's no two too close.
+data:extend {{
+    type = "noise-function",
+    name = "maraxsis_wyrm_checkerboard",
+    parameters = {"gi", "gj", "di", "dj", "cell"},
+    expression = "cell_is_in_square & is_black",
+    local_expressions = {
+        --- The grid square we're checking here.
+        square_i = "gi + di",
+        square_j = "gj + dj",
+        --- The center of the square.
+        center_x = "(square_i + 0.5) * " .. STRIP_CELL_SIZE,
+        center_y = "(square_j + 0.5) * " .. STRIP_CELL_SIZE,
+        --- 1 if the tile's cell is this square's cell.
+        cell_is_in_square = "maraxsis_wyrm_trench_cell_at(center_x, center_y) == cell",
+        --- 1 if this square is a black square on the checkerboard.
+        is_black = "(square_i + square_j) % 2 == 0",
+    },
+}}
+local checkerboard = {}
+for di = -1, 1 do
+    for dj = -1, 1 do
+        table.insert(checkerboard, "maraxsis_wyrm_checkerboard(gi, gj, " .. di .. ", " .. dj .. ", cell)")
+    end
+end
+data:extend {{
+    type = "noise-expression",
+    name = "maraxsis_wyrm_trench_cell_kept",
+    expression = table.concat(checkerboard, " + "),
+    local_expressions = {
+        --- The grid square this tile is in.
+        gi = "floor(x / " .. STRIP_CELL_SIZE .. ") + " .. STRIP_GRID_SHIFT,
+        gj = "floor(y / " .. STRIP_CELL_SIZE .. ") + " .. STRIP_GRID_SHIFT,
+        cell = "maraxsis_wyrm_trench_cell",
+    },
+}}
+--- The voronoi cells but restricted to the trench area.
 data:extend {{
     type = "noise-expression",
     name = "maraxsis_wyrm_trench_territory",
     --- -1 means no territory.
-    expression = "if(in_strip & away_from_other, cell, -1)",
+    expression = "if((inside > 0) & away_from_spawn & kept, maraxsis_wyrm_trench_cell, -1)",
     local_expressions = {
         here = "maraxsis_trench_noise(x, y)",
         gx = [[
@@ -437,24 +400,15 @@ data:extend {{
         slope = "sqrt(gx * gx + gy * gy)",
         --- Roughly how far this tile is from zero.
         zero_distance = "abs(here) / (slope + 0.000001)",
-        near_zero = "zero_distance < " .. STRIP_REACH,
-        in_flat = "abs(here) < " .. STRIP_FLAT_NOISE,
-        in_strip = "near_zero | in_flat",
-        cell = [[
-            voronoi_cell_id{
-                x = x + 1000 * ]] .. STRIP_CELL_SIZE .. [[,
-                y = y + 1000 * ]] .. STRIP_CELL_SIZE .. [[,
-                seed0 = map_seed,
-                seed1 = 7,
-                grid_size = ]] .. STRIP_CELL_SIZE .. [[,
-                distance_type = 'manhattan',
-                jitter = 0.5
-            }
-        ]],
+        --- Roughly how wide the open area is.
+        flat_reach = STRIP_FLAT_NOISE .. " / (slope + 0.000001)",
+        --- How far out from the middle line the territory goes, in tiles. Accounts
+        --- for the open area where the territory spreads out.
+        territory_reach = "max(" .. STRIP_REACH .. ", flat_reach)",
         edge_distance = [[
             voronoi_pyramid_noise{
-                x = x + 1000 * ]] .. STRIP_CELL_SIZE .. [[,
-                y = y + 1000 * ]] .. STRIP_CELL_SIZE .. [[,
+                x = x + ]] .. STRIP_GRID_SHIFT * STRIP_CELL_SIZE .. [[,
+                y = y + ]] .. STRIP_GRID_SHIFT * STRIP_CELL_SIZE .. [[,
                 seed0 = map_seed,
                 seed1 = 7,
                 grid_size = ]] .. STRIP_CELL_SIZE .. [[,
@@ -462,7 +416,49 @@ data:extend {{
                 jitter = 0.5
             } * ]] .. STRIP_CELL_SIZE .. [[
         ]],
-        --- `STRIP_GAP / 2` because half the gap belongs to each territory side
-        away_from_other = "edge_distance > " .. STRIP_GAP / 2,
+        --- How far this tile is from the end of the strip, in tiles. STRIP_GAP
+        --- gets divided by 2 because half the gap belongs to each territory side.
+        end_distance = "edge_distance - " .. STRIP_GAP / 2,
+        --- Makes the end of the strips be rounded instead of flat. Makes it seem
+        --- more natural.
+        rounded_end_hypotenuse = [[
+            sqrt(
+                zero_distance ^ 2 +
+                max(0, territory_reach - end_distance) ^ 2
+            )
+        ]],
+        --- How far inside the territory we are, in tiles. Negative if we're outside.
+        inside = "territory_reach - rounded_end_hypotenuse",
+        --- maraxsis_trench_noise doesn't account for spawn, so we do so ourselves here
+        away_from_spawn = "distance > maraxsis_starting_area",
+        kept = "maraxsis_wyrm_trench_cell_kept",
     },
 }}
+
+local path_fertility = {}
+local band_end = 0
+for i, band in ipairs(maraxsis_constants.WYRM_PATH_BANDS) do
+    band_end = band_end + band.width
+    local next_band = maraxsis_constants.WYRM_PATH_BANDS[i + 1]
+    local step = band.fertile - (next_band and next_band.fertile or 0)
+    table.insert(path_fertility, "(wobbled_distance < " .. band_end .. ") * " .. step)
+end
+
+--- Green "fertile" ground under where the matriarch paths. You farm wyrms here.
+data:extend {{
+    type = "noise-expression",
+    name = "maraxsis_wyrm_path",
+    expression = "kept & (fertility > maraxsis_wyrm_path_patches)",
+    local_expressions = maraxsis.merge(data.raw["noise-expression"]["maraxsis_wyrm_trench_territory"].local_expressions, {
+        --- If outside the territory: how far outside. If too far inside: how
+        --- far inside. This keeps the fertile ground from drawing in the middle
+        --- of an open area. The territory contains it but she paths on the border,
+        --- so her path sticks to the border too. This creates an open, non-fertile
+        --- middle area, if it's open enough.
+        path_distance = "if(inside > 0, max(0, inside - " .. STRIP_REACH .. "), -inside)",
+        --- path_distance with the wobble added
+        wobbled_distance = "if(path_distance > 0, max(0, path_distance - maraxsis_wyrm_path_wobble), 0)",
+        fertility = "if(wobbled_distance == 0, 1, " .. table.concat(path_fertility, " + ") .. ")",
+    }),
+}}
+

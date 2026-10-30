@@ -14,43 +14,18 @@ local SUBMARINES = {
 
 local WYRM_MATRIARCH_TERRITORY_EXPRESSION = "maraxsis_wyrm_trench_territory"
 local WYRM_MATRIARCH_MINIMUM_TERRITORY_SIZE = 350
---- Matriarch territory size, in tiles. Bigger means rarer matriarchs and longer
---- patrol paths.
-local WYRM_MATRIARCH_TERRITORY_RADIUS = 1024
 
---- The tile width of the matriarch's path that we make "fertile", including the
---- fade.
-local WYRM_PATH_WIDTH = 52
---- How many tiles wide the band of 2/3rds faded fertile path is.
-local WYRM_PATH_2_3_FADE = 8
---- How many tiles wide the band of 1/3rds faded fertile path is.
-local WYRM_PATH_1_3_FADE = 8
---- How many tiles make up the diameter of a "bald" spot in the thin area.
-local WYRM_PATH_EDGE_GRAIN = 4
+--- Extra padding outside of the main STRIP_REACH path where the fertile tiles
+--- get spotty, starting from the inside.
+local WYRM_PATH_BANDS = {
+    {width = 8, fertile = 2 / 3},
+    {width = 8, fertile = 1 / 3},
+}
+--- The "amplitude" of the wobble that makes the path's edge wavy, in tiles.
 local WYRM_PATH_WOBBLE = 10
-local WYRM_PATH_WOBBLE_LENGTH = 120
 --- Chance of a polylplast and coral on each tile of the matriarch path.
 local WYRM_PATH_POLYLPLAST_PROBABILITY = 0.004
 local WYRM_PATH_CORAL_PROBABILITY = 0.022
---- We use these noise expressions to regenerate matriarch paths after having
---- killed one. When that happens, we use neighboring tiles in these directions
---- to identify tiles that should decay.
-local WYRM_PATH_DIRECTIONS = {
-    north = {0, -1}, south = {0, 1}, east = {1, 0}, west = {-1, 0},
-    northeast = {1, -1}, southeast = {1, 1}, northwest = {-1, -1}, southwest = {-1, 1},
-}
---- The noise expression IDs for the expressions that tell us whether the tile's
---- neighbors are in territories that are still alive. We have to do it for each
---- "band" - the center that's fully fertile, the middle that's 2/3rds fertile,
---- and the outer that's 1/3rds fertile - because we need to recreate that fade
---- along the new edge of the path.
-local WYRM_PATH_BAND_TERRITORIES = {}
-for _, band in pairs {"center", "middle", "outer"} do
-    WYRM_PATH_BAND_TERRITORIES[band] = {}
-    for direction in pairs(WYRM_PATH_DIRECTIONS) do
-        WYRM_PATH_BAND_TERRITORIES[band][direction] = "maraxsis_wyrm_path_" .. band .. "_territory_" .. direction
-    end
-end
 
 local TRENCH_SURFACE_NAME = "maraxsis-trench"
 local MARAXSIS_SURFACE_NAME = "maraxsis"
@@ -124,17 +99,10 @@ data:extend {{
         TRENCH_ENTRANCE_ELEVATION = TRENCH_ENTRANCE_ELEVATION,
         WYRM_MATRIARCH_TERRITORY_EXPRESSION = WYRM_MATRIARCH_TERRITORY_EXPRESSION,
         WYRM_MATRIARCH_MINIMUM_TERRITORY_SIZE = WYRM_MATRIARCH_MINIMUM_TERRITORY_SIZE,
-        WYRM_MATRIARCH_TERRITORY_RADIUS = WYRM_MATRIARCH_TERRITORY_RADIUS,
-        WYRM_PATH_WIDTH = WYRM_PATH_WIDTH,
-        WYRM_PATH_2_3_FADE = WYRM_PATH_2_3_FADE,
-        WYRM_PATH_1_3_FADE = WYRM_PATH_1_3_FADE,
-        WYRM_PATH_EDGE_GRAIN = WYRM_PATH_EDGE_GRAIN,
+        WYRM_PATH_BANDS = WYRM_PATH_BANDS,
         WYRM_PATH_WOBBLE = WYRM_PATH_WOBBLE,
-        WYRM_PATH_WOBBLE_LENGTH = WYRM_PATH_WOBBLE_LENGTH,
         WYRM_PATH_POLYLPLAST_PROBABILITY = WYRM_PATH_POLYLPLAST_PROBABILITY,
         WYRM_PATH_CORAL_PROBABILITY = WYRM_PATH_CORAL_PROBABILITY,
-        WYRM_PATH_DIRECTIONS = WYRM_PATH_DIRECTIONS,
-        WYRM_PATH_BAND_TERRITORIES = WYRM_PATH_BAND_TERRITORIES,
         TROPICAL_FISH_NAMES = TROPICAL_FISH_NAMES,
         SAND_ITEM_NAME = SAND_ITEM_NAME,
         NEEDS_DOME = {}, -- populated by prototypes/collision-mask.lua
