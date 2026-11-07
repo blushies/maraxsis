@@ -1,4 +1,21 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.41.0
+Date: 2026-11-07
+  Features:
+    - With any planet start, added new recipe to convert high quality carbon fiber to low quality carbon fiber.
+  Balancing:
+    - Buffed the crafting time of fish oil spitting 0.25s -> 0.1sec
+    - Fish oil spitting can now take any quality of hydraulic science as input.
+    - Oversized steam turbines now require atmosphere in order to function.
+    - The bio oil recipe no longer requires lubricant, replaced with carbon.
+    - The duct intake and duct exhaust no longer require electricty.
+    - With any planet start, reduced the chance to lose carbon fiber in the salt water loop from 2.5% to 0.1%
+  Compatibility:
+    - With any planet start, ensure medium asteroids in orbit for all maraxsis connections, not just the vanilla ones.
+  Locale:
+    - Update several descriptions telling the player how to get initial power in the trench.
+    - Updated localised description for geothermal generators.
+---------------------------------------------------------------------------------------------------
 Version: 1.40.26
 Date: 2026-10-27
   Balancing:
