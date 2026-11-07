@@ -88,12 +88,12 @@ data:extend {{
     name = "maraxsis-fish-oil",
     localised_name = {"recipe-name.maraxsis-fish-oil"},
     enabled = false,
-    energy_required = 0.25,
+    energy_required = 0.1,
     ingredients = {
-        {type = "item", name = "hydraulic-science-pack", amount = 1, quality_min = "normal", quality_max = "normal"},
+        {type = "item", name = "hydraulic-science-pack", amount = 1},
     },
     results = {
-        {type = "item", name = "maraxsis-fish-oil", amount = 1},
+        {type = "item", name = "maraxsis-fish-oil", amount = 1, quality_min = "normal", quality_max = "normal"},
     },
     allow_productivity = false,
     allow_quality = false,

@@ -256,3 +256,11 @@ table.insert(data.raw.technology["maraxsis-glassworking"].effects, 1, {
     space_location = "maraxsis-trench",
     use_icon_overlay_constant = true
 })
+
+--reduce the % chance of losing carbon fiber in the water filter loop from 2.5% to 0.1%
+for _, result in pairs(data.raw.recipe["maraxsis-salt-filter-cleaning"].results) do
+    if result.name == "carbon-fiber" then
+        assert(result.independent_probability == 0.025)
+        result.independent_probability = 0.049
+    end
+end

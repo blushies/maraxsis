@@ -14,8 +14,21 @@ if mods["Rocs-Hardcore-Demolishers"] then
 end
 
 data.raw.planet.maraxsis.asteroid_spawn_definitions, data.raw.planet.nauvis.asteroid_spawn_definitions = data.raw.planet.nauvis.asteroid_spawn_definitions, data.raw.planet.maraxsis.asteroid_spawn_definitions
-data.raw["space-connection"]["vulcanus-maraxsis"].asteroid_spawn_definitions = asteroid_util.spawn_definitions(asteroid_util.nauvis_vulcanus)
-data.raw["space-connection"]["fulgora-maraxsis"].asteroid_spawn_definitions = asteroid_util.spawn_definitions(asteroid_util.nauvis_fulgora)
+for _, space_connection in pairs(data.raw["space-connection"]) do
+    local function connects_to(planet)
+        return space_connection.from == planet or space_connection.to == planet
+    end
+
+    if connects_to("hyarion") then
+        goto continue -- do not overrite bismuth asteroids
+    end
+
+    if connects_to("maraxsis") then
+        space_connection.asteroid_spawn_definitions = asteroid_util.spawn_definitions(asteroid_util.nauvis_vulcanus)
+    end
+
+    ::continue::
+end
 
 local sacrifice = table.deepcopy(data.raw.recipe["electromagnetic-plant"])
 table.insert(sacrifice.ingredients, {

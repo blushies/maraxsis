@@ -21,8 +21,8 @@ data:extend {{
     name = "maraxsis-bio-oil",
     categories = {"chemistry", "organic"},
     ingredients = {
-        {type = "fluid", name = "lubricant", amount = 30},
         {type = "fluid", name = "steam", amount = 100},
+        {type = "item", name = "carbon", amount = 2},
         {type = "item", name = "maraxsis-fish-oil", amount = 1},
     },
     results = {

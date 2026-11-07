@@ -51,7 +51,6 @@ local DOME_DISABLEABLE_TYPES = {
 --- Entities that need a pressure dome but are immune to flooding. These work
 --- in an un-atmosphere'd dome.
 local DOME_EXCLUDED_FROM_DISABLE = {
-    ["maraxsis-oversized-steam-turbine"] = true,
 }
 
 local SAND_ITEM_NAME = "sand"
