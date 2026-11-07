@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.41.1
+Date: 2026-11-07
+  Optimizations:
+    - Filter on_entity_damaged events to pressure dome colliders
+  Bugfixes:
+    - Pressure dome damage events no longer scan every dome
+---------------------------------------------------------------------------------------------------
 Version: 1.41.0
 Date: 2026-11-07
   Features:
