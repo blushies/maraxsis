@@ -1247,7 +1247,11 @@ maraxsis.on_event(defines.events.on_entity_damaged, function(event)
     local entity = event.entity
     if not entity.valid then return end
 
-    if rro.contains(MARAXSIS_DOME_COLLIDERS,entity.name) then return end
+    -- Only dome collision boxes need their health mirrored to the other boxes.
+    -- Bail out for every other entity first: damage events can fire hundreds of
+    -- times per tick (e.g. captive biter spawners), and the dome lookup below
+    -- scans every pressure dome and collision box.
+    if not rro.contains(MARAXSIS_DOME_COLLIDERS, entity.name) then return end
     local pressure_dome_data = find_pressure_dome_data_by_collision_entity(entity)
     if not pressure_dome_data then return end
 
