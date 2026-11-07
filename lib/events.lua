@@ -58,6 +58,16 @@ maraxsis.finalize_events = function()
 				
 				}
 				--error(serpent.block(filter))
+			elseif tonumber(event) == defines.events.on_entity_damaged then
+				-- Only pressure dome collision boxes need damage events. Without
+				-- this filter the handler is called for every damage event in the
+				-- game (captive biter spawners alone can fire hundreds per tick)
+				-- even though it ignores everything that is not a dome collider.
+				filter = {}
+				for _, dome_data in pairs(maraxsis_constants and maraxsis_constants.PRESSURE_DOMES or {}) do
+					filter[#filter + 1] = {filter = "name", name = dome_data.dome_collider}
+				end
+				if #filter == 0 then filter = nil end
 			end
 			
 			script.on_event(tonumber(event) or event, f,filter)
