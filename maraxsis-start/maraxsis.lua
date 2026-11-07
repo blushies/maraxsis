@@ -75,6 +75,7 @@ utils.add_recipes("cryogenic-plant", {"maraxsis-supercritical-steam-cooling"})
 utils.add_recipes("concrete", {"concrete-from-molten-iron", "stone-brick", "foundry"})
 utils.add_recipes("steel-processing", {"medium-electric-pole", "light-armor", "stone-furnace"})
 utils.add_recipes("space-platform", {"iron-plate", "copper-plate"})
+utils.add_recipes("maraxsis-hydro-plant", {"maraxsis-fiber-degradation"})
 
 utils.remove_recipes("maraxsis-piscary", {"maraxsis-microplastics", "maraxsis-smelt-microplastics", "maraxsis-nutrients-from-tropical-fish"})
 utils.remove_recipes("oil-processing", {"chemical-plant", "oil-refinery"})

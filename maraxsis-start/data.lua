@@ -53,6 +53,26 @@ data:extend {{
 }}
 
 data:extend {{
+    type = "recipe",
+    name = "maraxsis-fiber-degradation",
+    enabled = false,
+    energy_required = 3,
+    ingredients = {
+        {type = "item", name = maraxsis_constants.SAND_ITEM_NAME, amount = 1, quality_min = "normal", quality_max = "normal"},
+        {type = "item", name = "carbon-fiber", amount = 1, quality_min = "uncommon"},
+    },
+    results = {
+        {type = "item", name = "carbon-fiber", amount = 1, ignored_by_stats = 1, ignored_by_productivity = 1, quality_min = "normal", quality_max = "normal"},
+    },
+    allow_productivity = false,
+    allow_quality = false,
+    auto_recycle = false,
+    can_set_quality = true,
+    main_product = "carbon-fiber",
+    surface_conditions = maraxsis.surface_conditions(),
+}}
+
+data:extend {{
     type = "technology",
     name = "maraxsis-casting",
     icon = data.raw.technology["foundry"].icon,
