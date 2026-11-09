@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.41.2
+Date: 2026-11-09
+  Bugfixes:
+    - Fixed crash when using a railgun to destroy a pressure dome.
+  Locale:
+    - The maraxsis fish oil spitting recipe now states in the description that it only takes common science as ingredient.
+---------------------------------------------------------------------------------------------------
 Version: 1.41.1
 Date: 2026-11-07
   Optimizations:
