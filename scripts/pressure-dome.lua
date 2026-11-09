@@ -1136,7 +1136,7 @@ end
 
 local function on_dome_died(event, pressure_dome_data)
     local surface = pressure_dome_data.surface
-    local dome_prototype = domes[pressure_dome_data.prototype_name]
+    local dome_prototype = domes[pressure_dome_data.prototype]
     local DOME_POLYGON = dome_prototype.DOME_POLYGON
     if not surface.valid then return end
     local position = pressure_dome_data.position
