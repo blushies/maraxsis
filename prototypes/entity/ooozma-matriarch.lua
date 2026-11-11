@@ -13,7 +13,7 @@ local function matriarch_spritesheet(file_name, is_shadow, is_glow, scale, alpha
     is_shadow = is_shadow or false
     is_glow = is_glow or false
     local sprite = util.sprite_load(
-        "__maraxsis__/graphics/entity/wyrm-matriarch/" .. file_name,
+        "__maraxsis__/graphics/entity/ooozma-matriarch/" .. file_name,
         {
             direction_count = 128,
             dice = 0, -- dicing is incompatible with sprite alpha masking, do not attempt
@@ -28,13 +28,13 @@ local function matriarch_spritesheet(file_name, is_shadow, is_glow, scale, alpha
         }
     )
     if file_name == "matriarch-body-glow" then
-        sprite.filename = "__maraxsis__/graphics/entity/wyrm-matriarch/matriarch-body-glow.png"
+        sprite.filename = "__maraxsis__/graphics/entity/ooozma-matriarch/matriarch-body-glow.png"
     elseif file_name == "matriarch-head-glow" then
-        sprite.filename = "__maraxsis__/graphics/entity/wyrm-matriarch/matriarch-body-glow.png"
+        sprite.filename = "__maraxsis__/graphics/entity/ooozma-matriarch/matriarch-body-glow.png"
     elseif file_name == "matriarch-head" or file_name == "matriarch-head-shadow" then
-        sprite.filename = "__maraxsis__/graphics/entity/wyrm-matriarch/matriarch-head.png"
+        sprite.filename = "__maraxsis__/graphics/entity/ooozma-matriarch/matriarch-head.png"
     elseif file_name == "matriarch-body" or file_name == "matriarch-body-shadow" then
-        sprite.filename = "__maraxsis__/graphics/entity/wyrm-matriarch/matriarch-body.png"
+        sprite.filename = "__maraxsis__/graphics/entity/ooozma-matriarch/matriarch-body.png"
     end
     return sprite
 end
@@ -136,65 +136,65 @@ local created_effect = {
         source_effects = {
             {
                 type = "script",
-                effect_id = "maraxsis-wyrm-matriarch-segment-created",
+                effect_id = "maraxsis-ooozma-matriarch-segment-created",
             },
         },
     },
 }
 
---- The little wyrmling animation. Pointed 8 directions because we don't know
+--- The little ooozmaling animation. Pointed 8 directions because we don't know
 --- what direction she's going. They wiggle and glow.
-local WYRMLING_CELL = 400
-local WYRMLING_DIRECTIONS = 8
-local WYRMLING_FRAMES = 16
-local WYRMLING_ANIMATION_SPEED = 0.19
-local WYRMLING_SCALE = 0.7
-local WYRMLING_OPACITY = 0.8
-local WYRMLING_TTL = 640
-local WYRMLING_FADE_IN = 180
-local WYRMLING_FADE_AWAY = 120
+local OOOZMALING_CELL = 400
+local OOOZMALING_DIRECTIONS = 8
+local OOOZMALING_FRAMES = 16
+local OOOZMALING_ANIMATION_SPEED = 0.19
+local OOOZMALING_SCALE = 0.7
+local OOOZMALING_OPACITY = 0.8
+local OOOZMALING_TTL = 640
+local OOOZMALING_FADE_IN = 180
+local OOOZMALING_FADE_AWAY = 120
 
-for direction = 0, WYRMLING_DIRECTIONS - 1 do
+for direction = 0, OOOZMALING_DIRECTIONS - 1 do
     local animation = {
-        filename = "__maraxsis__/graphics/entity/wyrm-matriarch/wyrmling.png",
-        width = WYRMLING_CELL,
-        height = WYRMLING_CELL,
-        y = direction * WYRMLING_CELL,
-        frame_count = WYRMLING_FRAMES,
-        line_length = WYRMLING_FRAMES,
-        animation_speed = WYRMLING_ANIMATION_SPEED,
-        scale = WYRMLING_SCALE,
+        filename = "__maraxsis__/graphics/entity/ooozma-matriarch/ooozmaling.png",
+        width = OOOZMALING_CELL,
+        height = OOOZMALING_CELL,
+        y = direction * OOOZMALING_CELL,
+        frame_count = OOOZMALING_FRAMES,
+        line_length = OOOZMALING_FRAMES,
+        animation_speed = OOOZMALING_ANIMATION_SPEED,
+        scale = OOOZMALING_SCALE,
         flags = {"smoke"},
     }
 
     data:extend {{
         type = "trivial-smoke",
-        name = "maraxsis-wyrmling-" .. direction,
+        name = "maraxsis-ooozmaling-" .. direction,
         animation = animation,
         glow_animation = maraxsis.merge(animation, {
-            filename = "__maraxsis__/graphics/entity/wyrm-matriarch/wyrmling-glow.png",
+            filename = "__maraxsis__/graphics/entity/ooozma-matriarch/ooozmaling-glow.png",
             draw_as_glow = true,
         }),
         --- Wiggle forever.
         cyclic = true,
         movement_slow_down_factor = 1,
-        duration = WYRMLING_TTL,
-        glow_fade_away_duration = WYRMLING_TTL,
-        fade_in_duration = WYRMLING_FADE_IN,
-        fade_away_duration = WYRMLING_FADE_AWAY,
-        color = {WYRMLING_OPACITY, WYRMLING_OPACITY, WYRMLING_OPACITY, WYRMLING_OPACITY},
+        duration = OOOZMALING_TTL,
+        glow_fade_away_duration = OOOZMALING_TTL,
+        fade_in_duration = OOOZMALING_FADE_IN,
+        fade_away_duration = OOOZMALING_FADE_AWAY,
+        color = {OOOZMALING_OPACITY, OOOZMALING_OPACITY, OOOZMALING_OPACITY, OOOZMALING_OPACITY},
     }}
 end
 
-local function make_wyrmling_effects(spread, cooldown)
+local function make_ooozmaling_effects(spread, cooldown)
     local effects = {}
-    for direction = 0, WYRMLING_DIRECTIONS - 1 do
+    for direction = 0, OOOZMALING_DIRECTIONS - 1 do
         effects[#effects + 1] = {
             type = "create-trivial-smoke",
-            smoke_name = "maraxsis-wyrmling-" .. direction,
+            smoke_name = "maraxsis-ooozmaling-" .. direction,
             probability = 0.035,
             offset_deviation = {{-spread, -spread}, {spread, spread}},
-            starting_frame_deviation = WYRMLING_FRAMES,
+            starting_frame_deviation = OOOZMALING_FRAMES,
         }
     end
     return {time_cooldown = cooldown, effect = effects}
@@ -215,7 +215,7 @@ local function make_matriarch_head(
         keep_animation = true, -- TODO: remove
         name = "maraxsis-" .. base_name,
         type = "segmented-unit",
-        icon = "__maraxsis__/graphics/entity/wyrm-matriarch/icon.png",
+        icon = "__maraxsis__/graphics/entity/ooozma-matriarch/icon.png",
         flags = {"placeable-player", "placeable-enemy", "placeable-off-grid", "breaths-air", "not-repairable"},
         max_health = health,
         factoriopedia_simulation = factoriopedia_simulation,
@@ -243,13 +243,13 @@ local function make_matriarch_head(
         patrolling_turn_radius = 26 * scale,                  -- tiles
         turn_smoothing = 0.75,                                -- fraction of the total turning range (based on turning radius)
         roar = {
-            filename = "__maraxsis__/sounds/wyrm-matriarch-roar.ogg",
+            filename = "__maraxsis__/sounds/ooozma-matriarch-roar.ogg",
             category = "enemy",
             priority = 127,
         },
         roar_probability = sounds.roar_probability,
         hurt_roar = {
-            filename = "__maraxsis__/sounds/wyrm-matriarch-roar.ogg",
+            filename = "__maraxsis__/sounds/ooozma-matriarch-roar.ogg",
             category = "enemy",
             priority = 127,
         },
@@ -284,7 +284,7 @@ local function make_matriarch_segment(base_name, scale, damage_multiplier, healt
         keep_animation = true, -- TODO: remove
         name = make_segment_name(base_name .. "-segment", scale),
         type = "segment",
-        localised_name = {"entity-name.maraxsis-wyrm-matriarch-segment", {"entity-name.maraxsis-" .. base_name}},
+        localised_name = {"entity-name.maraxsis-ooozma-matriarch-segment", {"entity-name.maraxsis-" .. base_name}},
         --- The default minus "rail". This makes it so submarines can pass through
         --- her body. Her head needs to continue to be on the rail layer so that
         --- she can target submarines (if they attack her), so you can technically
@@ -308,7 +308,7 @@ local function make_matriarch_segment(base_name, scale, damage_multiplier, healt
             },
         },
         update_effects = {
-            make_wyrmling_effects(18 * scale, math.floor(180 * scale)),
+            make_ooozmaling_effects(18 * scale, math.floor(180 * scale)),
         },
         backward_overlap = 4,
         forward_padding = -1 * scale,  -- tiles
@@ -317,7 +317,7 @@ local function make_matriarch_segment(base_name, scale, damage_multiplier, healt
         working_sound = {
             main_sounds = {
                 sound = {
-                    filename = "__maraxsis__/sounds/wyrm-matriarch-swim.ogg",
+                    filename = "__maraxsis__/sounds/ooozma-matriarch-swim.ogg",
                     category = "enemy",
                     priority = 127,
                     volume = 0.5,
@@ -392,7 +392,7 @@ local function make_matriarch(
 end
 
 make_matriarch(
-    "wyrm-matriarch",
+    "ooozma-matriarch",
     "maraxsis-d",
     1.5,
     1,
@@ -406,7 +406,7 @@ make_matriarch(
 
 --- Copy+paste demolisher's attack for now, tinted blue.
 local BLUE = {0.35, 0.7, 1.0}
-local fissure_attack = make_demolisher_fissure_attack("maraxsis-wyrm-matriarch", "maraxsis-d", 1.5, 1)
+local fissure_attack = make_demolisher_fissure_attack("maraxsis-ooozma-matriarch", "maraxsis-d", 1.5, 1)
 local function tint(animation)
     if animation[1] or animation.layers then
         for _, part in pairs(animation.layers or animation) do tint(part) end
@@ -421,9 +421,9 @@ for _, prototype in pairs(fissure_attack) do
 end
 data:extend(fissure_attack)
 
-local matriarch = data.raw["segmented-unit"]["maraxsis-wyrm-matriarch"]
+local matriarch = data.raw["segmented-unit"]["maraxsis-ooozma-matriarch"]
 matriarch.revenge_attack_parameters = table.deepcopy(data.raw["segmented-unit"]["big-demolisher"].revenge_attack_parameters)
 for _, effect in pairs(matriarch.revenge_attack_parameters.ammo_type.action.action_delivery.target_effects) do
-    effect.entity_name = "maraxsis-wyrm-matriarch-fissure"
+    effect.entity_name = "maraxsis-ooozma-matriarch-fissure"
 end
 

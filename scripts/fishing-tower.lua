@@ -139,7 +139,7 @@ end)
 maraxsis.on_event(defines.events.on_tower_planted_seed, function(event)
     local quality = event.seed.quality
     local plant = event.plant
-    if plant.name == "maraxsis-fishing-plant" or plant.name == "maraxsis-wyrm-bait" then
+    if plant.name == "maraxsis-fishing-plant" or plant.name == "maraxsis-ooozma-bait" then
         register_plant(plant, quality)
         local speed_bonus = event.tower.speed_bonus
         if speed_bonus > 0 then

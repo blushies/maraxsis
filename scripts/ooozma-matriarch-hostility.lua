@@ -2,7 +2,7 @@
 --- When attacking, she's always "enraged". Her enrage timer is also her passive
 --- timer. After her enrage is over (see enraged_duration), we turn her back
 --- passive.
-local PASSIVE_FORCE_NAME = "maraxsis-wyrm-passive"
+local PASSIVE_FORCE_NAME = "maraxsis-ooozma-passive"
 local HOSTILE_FORCE_NAME = "enemy"
 
 --- How soon to look at a matriarch that was just hit.
@@ -35,7 +35,7 @@ local function calm_down(unit)
     local ai_state = unit.get_ai_state()
     if ai_state.type == defines.segmented_unit_ai_state.enraged_at_target or
         ai_state.type == defines.segmented_unit_ai_state.enraged_at_nothing then
-        maraxsis.execute_later("wyrm_matriarch_calm_down", ai_state.remaining_time + 1, unit)
+        maraxsis.execute_later("ooozma_matriarch_calm_down", ai_state.remaining_time + 1, unit)
         return
     end
     make_passive(unit)
@@ -45,14 +45,14 @@ local function calm_down(unit)
     --- since she transitions straight to "patrolling" after that.
     unit.set_ai_state {type = defines.segmented_unit_ai_state.investigating, destination = head.position}
 end
-maraxsis.register_delayed_function("wyrm_matriarch_calm_down", calm_down)
+maraxsis.register_delayed_function("ooozma_matriarch_calm_down", calm_down)
 
 --- @param unit LuaSegmentedUnit
 local function make_hostile(unit)
     if not unit.valid then return end
     if unit.force.name == HOSTILE_FORCE_NAME then return end
     unit.force = HOSTILE_FORCE_NAME
-    maraxsis.execute_later("wyrm_matriarch_calm_down", FIRST_CHECK_TICKS, unit)
+    maraxsis.execute_later("ooozma_matriarch_calm_down", FIRST_CHECK_TICKS, unit)
 end
 
 maraxsis.on_event(maraxsis.events.on_init(), function()

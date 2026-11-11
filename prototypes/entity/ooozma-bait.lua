@@ -1,12 +1,12 @@
---- Bait is a wyrm confinement cell planted by a fishing tower, baited with fish
+--- Bait is an ooozma confinement cell planted by a fishing tower, baited with fish
 --- food.
 
 local bait = table.deepcopy(data.raw["plant"]["maraxsis-fishing-plant"])
-bait.name = "maraxsis-wyrm-bait"
-bait.localised_name = {"entity-name.maraxsis-wyrm-bait"}
-bait.localised_description = {"entity-description.maraxsis-wyrm-bait"}
-bait.icon = data.raw.item["maraxsis-wyrm-specimen"].icon
-bait.icon_size = data.raw.item["maraxsis-wyrm-specimen"].icon_size
+bait.name = "maraxsis-ooozma-bait"
+bait.localised_name = {"entity-name.maraxsis-ooozma-bait"}
+bait.localised_description = {"entity-description.maraxsis-ooozma-bait"}
+bait.icon = data.raw.item["maraxsis-ooozma-specimen"].icon
+bait.icon_size = data.raw.item["maraxsis-ooozma-specimen"].icon_size
 bait.pictures = nil
 
 bait.growth_ticks = 60 * 60 * 5
@@ -24,7 +24,7 @@ bait.surface_conditions = maraxsis.trench_surface_conditions()
 
 bait.minable = {
     mining_time = 0.5,
-    results = {{type = "item", name = "maraxsis-wyrm-specimen", amount = 10}},
+    results = {{type = "item", name = "maraxsis-ooozma-specimen", amount = 10}},
 }
 
 bait.agricultural_tower_tint = {
@@ -33,7 +33,7 @@ bait.agricultural_tower_tint = {
 }
 
 --- Show green preview squares over trench tiles to indicate that we can place
---- wyrm bait there.
+--- ooozma bait there.
 bait.autoplace = {
     tile_restriction = {"maraxsis-fertile-trench-floor"},
     probability_expression = "0",

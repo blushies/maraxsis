@@ -1,11 +1,11 @@
-local TERRITORY_EXPRESSION = maraxsis_constants.WYRM_MATRIARCH_TERRITORY_EXPRESSION
-local MINIMUM_TERRITORY_SIZE = maraxsis_constants.WYRM_MATRIARCH_MINIMUM_TERRITORY_SIZE
+local TERRITORY_EXPRESSION = maraxsis_constants.OOOZMA_MATRIARCH_TERRITORY_EXPRESSION
+local MINIMUM_TERRITORY_SIZE = maraxsis_constants.OOOZMA_MATRIARCH_MINIMUM_TERRITORY_SIZE
 
 local TILES_PER_CHUNK = 32
 
 --- The expression that follows the path of the matriarchs along the borders of
 --- their territories. 
-local PATH_EXPRESSION = "maraxsis_wyrm_path"
+local PATH_EXPRESSION = "maraxsis_ooozma_path"
 local PATH_TILE = "maraxsis-fertile-trench-floor"
 local WALL_ROCKS_EXPRESSION = "maraxsis_trench_wall_rocks"
 local POLYLPLAST = "maraxsis-trench-polylplast"
@@ -115,8 +115,8 @@ local BARREN_TILE = "volcanic-folds-underwater"
 --- How many chunks past her territory a matriarch's fertile path can reach.
 local PATH_MARGIN
 do
-    local tiles = TILES_PER_CHUNK + maraxsis_constants.WYRM_PATH_WOBBLE
-    for _, band in pairs(maraxsis_constants.WYRM_PATH_BANDS) do tiles = tiles + band.width end
+    local tiles = TILES_PER_CHUNK + maraxsis_constants.OOOZMA_PATH_WOBBLE
+    for _, band in pairs(maraxsis_constants.OOOZMA_PATH_BANDS) do tiles = tiles + band.width end
     PATH_MARGIN = math.ceil(tiles / TILES_PER_CHUNK)
 end
 
@@ -146,14 +146,14 @@ local function prune_path(chunk)
         end
     end
     local living = {}
-    local dead = storage.wyrm_dead_territories or {}
+    local dead = storage.ooozma_dead_territories or {}
     for _, territory in pairs(get_chunk_territories(trench, territory_chunks)) do
         if not dead[territory] then living[territory] = true end
     end
 
     local positions = {}
     for i, tile in pairs(path_tiles) do positions[i] = tile.position end
-    local cells = trench.calculate_tile_properties({"maraxsis_wyrm_trench_cell"}, positions).maraxsis_wyrm_trench_cell
+    local cells = trench.calculate_tile_properties({"maraxsis_ooozma_trench_cell"}, positions).maraxsis_ooozma_trench_cell
     local barren = {}
     for i, position in pairs(positions) do
         if not living[cells[i]] then
@@ -170,18 +170,18 @@ end
 
 --- Backfill chunks generated before we had matriarch paths. Batched to avoid
 --- lockups.
-local function carve_wyrm_paths()
-    local queue = storage.wyrm_path_chunks
+local function carve_ooozma_paths()
+    local queue = storage.ooozma_path_chunks
     local trench = game.surfaces[maraxsis_constants.TRENCH_SURFACE_NAME]
     if not queue or not trench then
-        storage.wyrm_path_chunks = nil
+        storage.ooozma_path_chunks = nil
         return
     end
 
     for _ = 1, CHUNKS_PER_BATCH do
         local chunk = table.remove(queue)
         if not chunk then
-            storage.wyrm_path_chunks = nil
+            storage.ooozma_path_chunks = nil
             return
         end
         local left, top = chunk.x * TILES_PER_CHUNK, chunk.y * TILES_PER_CHUNK
@@ -204,8 +204,8 @@ local function carve_wyrm_paths()
             for i, value in pairs(on_path) do
                 if value > 0 and wall_rocks[i] == 0 then
                     local roll = math.random()
-                    local name = (roll < maraxsis_constants.WYRM_PATH_POLYLPLAST_PROBABILITY and POLYLPLAST)
-                        or (roll < maraxsis_constants.WYRM_PATH_POLYLPLAST_PROBABILITY + maraxsis_constants.WYRM_PATH_CORAL_PROBABILITY and CORAL)
+                    local name = (roll < maraxsis_constants.OOOZMA_PATH_POLYLPLAST_PROBABILITY and POLYLPLAST)
+                        or (roll < maraxsis_constants.OOOZMA_PATH_POLYLPLAST_PROBABILITY + maraxsis_constants.OOOZMA_PATH_CORAL_PROBABILITY and CORAL)
                     if name then
                         local position = {positions[i].x + 0.5, positions[i].y + 0.5}
                         if trench.can_place_entity {name = name, position = position} then
@@ -217,9 +217,9 @@ local function carve_wyrm_paths()
             prune_path(chunk)
         end
     end
-    maraxsis.execute_later("wyrm_path_batch", 1)
+    maraxsis.execute_later("ooozma_path_batch", 1)
 end
-maraxsis.register_delayed_function("wyrm_path_batch", carve_wyrm_paths)
+maraxsis.register_delayed_function("ooozma_path_batch", carve_ooozma_paths)
 
 --- Ticks between each chunk of a dead matriarch's path going barren, so it fades out.
 local TICKS_PER_DEAD_CHUNK = 6
@@ -227,16 +227,16 @@ local TICKS_PER_DEAD_CHUNK = 6
 --- Decays queued chunks until one has path in it, then waits a moment before the next,
 --- so the path fades out without pausing on chunks that have none.
 local function kill_dead_paths()
-    local queue = storage.wyrm_dead_path_chunks
+    local queue = storage.ooozma_dead_path_chunks
     repeat
         if not queue or not queue[1] then
-            storage.wyrm_dead_path_chunks = nil
+            storage.ooozma_dead_path_chunks = nil
             return
         end
     until prune_path(table.remove(queue, 1))
-    maraxsis.execute_later("wyrm_dead_path_batch", TICKS_PER_DEAD_CHUNK)
+    maraxsis.execute_later("ooozma_dead_path_batch", TICKS_PER_DEAD_CHUNK)
 end
-maraxsis.register_delayed_function("wyrm_dead_path_batch", kill_dead_paths)
+maraxsis.register_delayed_function("ooozma_dead_path_batch", kill_dead_paths)
 
 --- Variation on breadth-first search that grows the list of chunks by the given
 --- margin.
@@ -282,8 +282,8 @@ maraxsis.on_event(defines.events.on_segmented_unit_died, function(event)
     --- Queue all her territory's chunks for death.
     local first = chunks[1]
     local _, id = next(get_chunk_territories(surface, {first}))
-    storage.wyrm_dead_territories = storage.wyrm_dead_territories or {}
-    storage.wyrm_dead_territories[id] = true
+    storage.ooozma_dead_territories = storage.ooozma_dead_territories or {}
+    storage.ooozma_dead_territories[id] = true
     local head = unit.segments[1]
     local died_at = head and head.valid and head.position or {x = first.x * TILES_PER_CHUNK, y = first.y * TILES_PER_CHUNK}
     local dying = {}
@@ -298,16 +298,16 @@ maraxsis.on_event(defines.events.on_segmented_unit_died, function(event)
     --- Kill the chunks closest to where she died first.
     table.sort(dying, function(a, b) return a.distance < b.distance end)
 
-    local idle = not storage.wyrm_dead_path_chunks
-    storage.wyrm_dead_path_chunks = storage.wyrm_dead_path_chunks or {}
+    local idle = not storage.ooozma_dead_path_chunks
+    storage.ooozma_dead_path_chunks = storage.ooozma_dead_path_chunks or {}
     for _, chunk in pairs(dying) do
-        table.insert(storage.wyrm_dead_path_chunks, {x = chunk.x, y = chunk.y})
+        table.insert(storage.ooozma_dead_path_chunks, {x = chunk.x, y = chunk.y})
     end
     if idle then kill_dead_paths() end
 end)
 
 --- The territory and fertile biome noise expressions are slightly different
---- because the game will remove a territory under WYRM_MATRIARCH_MINIMUM_TERRITORY_SIZE
+--- because the game will remove a territory under OOOZMA_MATRIARCH_MINIMUM_TERRITORY_SIZE
 --- chunks, but will leave the biome. So we must trim the too-small biomes ourselves.
 maraxsis.on_event(defines.events.on_chunk_generated, function(event)
     if event.surface.name ~= maraxsis_constants.TRENCH_SURFACE_NAME then return end
@@ -318,8 +318,8 @@ end)
 --- be in migrations/ because those all run before scripts/map-gen/maraxsis.lua
 --- gives the trench its territory_settings.
 local function ensure_matriarchs()
-    if storage.wyrm_matriarch_territories_filled then return end
-    storage.wyrm_matriarch_territories_filled = true
+    if storage.ooozma_matriarch_territories_filled then return end
+    storage.ooozma_matriarch_territories_filled = true
 
     local trench = game.surfaces[maraxsis_constants.TRENCH_SURFACE_NAME]
     if not trench then return end
@@ -332,8 +332,8 @@ local function ensure_matriarchs()
     for chunk in trench.get_chunks() do
         if trench.is_chunk_generated(chunk) then chunks[#chunks + 1] = {x = chunk.x, y = chunk.y} end
     end
-    storage.wyrm_path_chunks = chunks
-    carve_wyrm_paths()
+    storage.ooozma_path_chunks = chunks
+    carve_ooozma_paths()
 end
 
 maraxsis.on_event(maraxsis.events.on_init(), function()

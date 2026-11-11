@@ -215,7 +215,7 @@ data.raw.tile["volcanic-folds-underwater"].autoplace = {
 
 data.raw.tile["maraxsis-fertile-trench-floor"].autoplace = {
     probability_expression = [[
-        2 * maraxsis_trench_wall * maraxsis_wyrm_path * (1 - maraxsis_hot_lava)
+        2 * maraxsis_trench_wall * maraxsis_ooozma_path * (1 - maraxsis_hot_lava)
     ]],
     order = "e[tile]-b[maraxsis]"
 }
@@ -224,11 +224,11 @@ data.raw.tile["maraxsis-fertile-trench-floor"].autoplace = {
 for i, spec in pairs {
     {
         prototype = data.raw.tree["maraxsis-trench-polylplast"],
-        probability = maraxsis_constants.WYRM_PATH_POLYLPLAST_PROBABILITY,
+        probability = maraxsis_constants.OOOZMA_PATH_POLYLPLAST_PROBABILITY,
     },
     {
         prototype = data.raw["simple-entity"]["maraxsis-trench-coral-animation"],
-        probability = maraxsis_constants.WYRM_PATH_CORAL_PROBABILITY,
+        probability = maraxsis_constants.OOOZMA_PATH_CORAL_PROBABILITY,
     },
 } do
     spec.prototype.autoplace = {
@@ -255,17 +255,17 @@ data.raw["simple-entity"]["maraxsis-chimney"].autoplace = {
 --- Makes the edge of the fertile zone be wavy instead of straight.
 --- 
 --- The "wavelength" of the wobble wave, in tiles.
-local WYRM_PATH_WOBBLE_LENGTH = 120
+local OOOZMA_PATH_WOBBLE_LENGTH = 120
 data:extend {{
     type = "noise-expression",
-    name = "maraxsis_wyrm_path_wobble",
+    name = "maraxsis_ooozma_path_wobble",
     expression = [[
-        ]] .. maraxsis_constants.WYRM_PATH_WOBBLE .. [[ * basis_noise{
+        ]] .. maraxsis_constants.OOOZMA_PATH_WOBBLE .. [[ * basis_noise{
             x = x,
             y = y,
             seed0 = map_seed,
-            seed1 = 'maraxsis_wyrm_path_wobble',
-            input_scale = 1/]] .. WYRM_PATH_WOBBLE_LENGTH .. [[,
+            seed1 = 'maraxsis_ooozma_path_wobble',
+            input_scale = 1/]] .. OOOZMA_PATH_WOBBLE_LENGTH .. [[,
             output_scale = 1
         }
     ]],
@@ -274,17 +274,17 @@ data:extend {{
 --- Noise mask we use to make the path progressively faded.
 ---
 --- How many tiles make up the diameter of a "bald" spot in the thin area.
-local WYRM_PATH_EDGE_GRAIN = 4
+local OOOZMA_PATH_EDGE_GRAIN = 4
 data:extend {{
     type = "noise-expression",
-    name = "maraxsis_wyrm_path_patches",
+    name = "maraxsis_ooozma_path_patches",
     expression = [[
         clamp(0.5 + 0.5 * basis_noise{
             x = x,
             y = y,
             seed0 = map_seed,
-            seed1 = 'maraxsis_wyrm_path_patches',
-            input_scale = 1/]] .. WYRM_PATH_EDGE_GRAIN .. [[,
+            seed1 = 'maraxsis_ooozma_path_patches',
+            input_scale = 1/]] .. OOOZMA_PATH_EDGE_GRAIN .. [[,
             output_scale = 1
         }, 0.01, 0.99)
     ]],
@@ -296,7 +296,7 @@ data:extend {{
 --- - 1 for no enemy
 data:extend {{
     type = "noise-expression",
-    name = "maraxsis_wyrm_matriarch_variation_expression",
+    name = "maraxsis_ooozma_matriarch_variation_expression",
     expression = "-no_enemies_mode",
 }}
 
@@ -322,7 +322,7 @@ local STRIP_GRID_SHIFT = 1000
 --- The voronoi cell number at the given points px and py.
 data:extend {{
     type = "noise-function",
-    name = "maraxsis_wyrm_trench_cell_at",
+    name = "maraxsis_ooozma_trench_cell_at",
     parameters = {"px", "py"},
     expression = [[
         voronoi_cell_id{
@@ -340,15 +340,15 @@ data:extend {{
 --- The voronoi cells that split up the territories and define the territory's ID.
 data:extend {{
     type = "noise-expression",
-    name = "maraxsis_wyrm_trench_cell",
-    expression = "maraxsis_wyrm_trench_cell_at(x + " .. STRIP_GRID_SHIFT * STRIP_CELL_SIZE .. ", y + " .. STRIP_GRID_SHIFT * STRIP_CELL_SIZE .. ")",
+    name = "maraxsis_ooozma_trench_cell",
+    expression = "maraxsis_ooozma_trench_cell_at(x + " .. STRIP_GRID_SHIFT * STRIP_CELL_SIZE .. ", y + " .. STRIP_GRID_SHIFT * STRIP_CELL_SIZE .. ")",
 }}
 
---- Create a checkerboard. We allow wyrm territories to be in the "black" grid
+--- Create a checkerboard. We allow ooozma territories to be in the "black" grid
 --- sections, which lets us space the territories out so there's no two too close.
 data:extend {{
     type = "noise-function",
-    name = "maraxsis_wyrm_checkerboard",
+    name = "maraxsis_ooozma_checkerboard",
     parameters = {"gi", "gj", "di", "dj", "cell"},
     expression = "cell_is_in_square & is_black",
     local_expressions = {
@@ -359,7 +359,7 @@ data:extend {{
         center_x = "(square_i + 0.5) * " .. STRIP_CELL_SIZE,
         center_y = "(square_j + 0.5) * " .. STRIP_CELL_SIZE,
         --- 1 if the tile's cell is this square's cell.
-        cell_is_in_square = "maraxsis_wyrm_trench_cell_at(center_x, center_y) == cell",
+        cell_is_in_square = "maraxsis_ooozma_trench_cell_at(center_x, center_y) == cell",
         --- 1 if this square is a black square on the checkerboard.
         is_black = "(square_i + square_j) % 2 == 0",
     },
@@ -367,26 +367,26 @@ data:extend {{
 local checkerboard = {}
 for di = -1, 1 do
     for dj = -1, 1 do
-        table.insert(checkerboard, "maraxsis_wyrm_checkerboard(gi, gj, " .. di .. ", " .. dj .. ", cell)")
+        table.insert(checkerboard, "maraxsis_ooozma_checkerboard(gi, gj, " .. di .. ", " .. dj .. ", cell)")
     end
 end
 data:extend {{
     type = "noise-expression",
-    name = "maraxsis_wyrm_trench_cell_kept",
+    name = "maraxsis_ooozma_trench_cell_kept",
     expression = table.concat(checkerboard, " + "),
     local_expressions = {
         --- The grid square this tile is in.
         gi = "floor(x / " .. STRIP_CELL_SIZE .. ") + " .. STRIP_GRID_SHIFT,
         gj = "floor(y / " .. STRIP_CELL_SIZE .. ") + " .. STRIP_GRID_SHIFT,
-        cell = "maraxsis_wyrm_trench_cell",
+        cell = "maraxsis_ooozma_trench_cell",
     },
 }}
 --- The voronoi cells but restricted to the trench area.
 data:extend {{
     type = "noise-expression",
-    name = "maraxsis_wyrm_trench_territory",
+    name = "maraxsis_ooozma_trench_territory",
     --- -1 means no territory.
-    expression = "if((inside > 0) & away_from_spawn & kept, maraxsis_wyrm_trench_cell, -1)",
+    expression = "if((inside > 0) & away_from_spawn & kept, maraxsis_ooozma_trench_cell, -1)",
     local_expressions = {
         here = "maraxsis_trench_noise(x, y)",
         gx = [[
@@ -431,25 +431,25 @@ data:extend {{
         inside = "territory_reach - rounded_end_hypotenuse",
         --- maraxsis_trench_noise doesn't account for spawn, so we do so ourselves here
         away_from_spawn = "distance > maraxsis_starting_area",
-        kept = "maraxsis_wyrm_trench_cell_kept",
+        kept = "maraxsis_ooozma_trench_cell_kept",
     },
 }}
 
 local path_fertility = {}
 local band_end = 0
-for i, band in ipairs(maraxsis_constants.WYRM_PATH_BANDS) do
+for i, band in ipairs(maraxsis_constants.OOOZMA_PATH_BANDS) do
     band_end = band_end + band.width
-    local next_band = maraxsis_constants.WYRM_PATH_BANDS[i + 1]
+    local next_band = maraxsis_constants.OOOZMA_PATH_BANDS[i + 1]
     local step = band.fertile - (next_band and next_band.fertile or 0)
     table.insert(path_fertility, "(wobbled_distance < " .. band_end .. ") * " .. step)
 end
 
---- Green "fertile" ground under where the matriarch paths. You farm wyrms here.
+--- Green "fertile" ground under where the matriarch paths. You farm ooozmas here.
 data:extend {{
     type = "noise-expression",
-    name = "maraxsis_wyrm_path",
-    expression = "kept & (fertility > maraxsis_wyrm_path_patches)",
-    local_expressions = maraxsis.merge(data.raw["noise-expression"]["maraxsis_wyrm_trench_territory"].local_expressions, {
+    name = "maraxsis_ooozma_path",
+    expression = "kept & (fertility > maraxsis_ooozma_path_patches)",
+    local_expressions = maraxsis.merge(data.raw["noise-expression"]["maraxsis_ooozma_trench_territory"].local_expressions, {
         --- If outside the territory: how far outside. If too far inside: how
         --- far inside. This keeps the fertile ground from drawing in the middle
         --- of an open area. The territory contains it but she paths on the border,
@@ -457,7 +457,7 @@ data:extend {{
         --- middle area, if it's open enough.
         path_distance = "if(inside > 0, max(0, inside - " .. STRIP_REACH .. "), -inside)",
         --- path_distance with the wobble added
-        wobbled_distance = "if(path_distance > 0, max(0, path_distance - maraxsis_wyrm_path_wobble), 0)",
+        wobbled_distance = "if(path_distance > 0, max(0, path_distance - maraxsis_ooozma_path_wobble), 0)",
         fertility = "if(wobbled_distance == 0, 1, " .. table.concat(path_fertility, " + ") .. ")",
     }),
 }}

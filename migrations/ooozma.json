@@ -1,0 +1,15 @@
+{
+    "item": [
+        ["maraxsis-wyrm-confinement-cell", "maraxsis-ooozma-confinement-cell"],
+        ["maraxsis-wyrm-specimen", "maraxsis-ooozma-specimen"]
+    ],
+    "recipe": [
+        ["maraxsis-wyrm-confinement-cell", "maraxsis-ooozma-confinement-cell"],
+        ["maraxsis-wyrm-specimen", "maraxsis-ooozma-specimen"],
+        ["maraxsis-wyrm-confinement-cell-recycling", "maraxsis-ooozma-confinement-cell-recycling"],
+        ["maraxsis-wyrm-specimen-recycling", "maraxsis-ooozma-specimen-recycling"]
+    ],
+    "technology": [
+        ["maraxsis-wyrm-confinement", "maraxsis-ooozma-confinement"]
+    ]
+}
