@@ -4,9 +4,15 @@
 --- passive.
 local PASSIVE_FORCE_NAME = "maraxsis-ooozma-passive"
 local HOSTILE_FORCE_NAME = "enemy"
+local MATRIARCH_NAME = "maraxsis-ooozma-matriarch"
 
 --- How soon to look at a matriarch that was just hit.
 local FIRST_CHECK_TICKS = 60
+
+--- @param unit LuaSegmentedUnit
+local function is_matriarch(unit)
+    return unit.valid and unit.prototype.name == MATRIARCH_NAME
+end
 
 --- @return LuaForce
 local function ensure_passive_force()
@@ -39,11 +45,11 @@ local function calm_down(unit)
         return
     end
     make_passive(unit)
-    local head = unit.segments[1].entity
     --- If you set her to "patrolling" mode, you have to specify where she should
     --- go. Sending her "investigating" to her current location lets us skip that
     --- since she transitions straight to "patrolling" after that.
-    unit.set_ai_state {type = defines.segmented_unit_ai_state.investigating, destination = head.position}
+    local destination = unit.segments[1].position or unit.get_body_nodes()[1]
+    unit.set_ai_state {type = defines.segmented_unit_ai_state.investigating, destination = destination}
 end
 maraxsis.register_delayed_function("ooozma_matriarch_calm_down", calm_down)
 
@@ -60,7 +66,9 @@ maraxsis.on_event(maraxsis.events.on_init(), function()
 end)
 
 maraxsis.on_event(defines.events.on_segmented_unit_created, function(event)
-    make_passive(event.segmented_unit)
+    local unit = event.segmented_unit
+    if not is_matriarch(unit) then return end
+    make_passive(unit)
 end)
 
 maraxsis.on_event(defines.events.on_force_created, function(event)
@@ -68,5 +76,7 @@ maraxsis.on_event(defines.events.on_force_created, function(event)
 end)
 
 maraxsis.on_event(defines.events.on_segmented_unit_damaged, function(event)
-    make_hostile(event.segmented_unit)
+    local unit = event.segmented_unit
+    if not is_matriarch(unit) then return end
+    make_hostile(unit)
 end)
