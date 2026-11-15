@@ -37,7 +37,7 @@ end
 --- Makes her passive again after a timeout. Resets when she's hit again.
 --- @param unit LuaSegmentedUnit
 local function calm_down(unit)
-    if not unit.valid then return end
+    if not is_matriarch(unit) then return end
     local ai_state = unit.get_ai_state()
     if ai_state.type == defines.segmented_unit_ai_state.enraged_at_target or
         ai_state.type == defines.segmented_unit_ai_state.enraged_at_nothing then
@@ -63,6 +63,14 @@ end
 
 maraxsis.on_event(maraxsis.events.on_init(), function()
     ensure_passive_force()
+    --- Fix demolishers made passive in 1.42.0.
+    for _, surface in pairs(game.surfaces) do
+        for _, unit in pairs(surface.get_segmented_units()) do
+            if unit.force.name == PASSIVE_FORCE_NAME and not is_matriarch(unit) then
+                unit.force = HOSTILE_FORCE_NAME
+            end
+        end
+    end
 end)
 
 maraxsis.on_event(defines.events.on_segmented_unit_created, function(event)
